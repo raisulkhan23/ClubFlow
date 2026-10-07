@@ -80,7 +80,7 @@ export default function Participants() {
         (r) =>
           r.participantName.toLowerCase().includes(s) ||
           (r.participantEmail ?? "").toLowerCase().includes(s) ||
-          (r.answers ?? []).some((a) => String(a.value).toLowerCase().includes(s)),
+          ((r as unknown as { answers?: Array<{ value: unknown }> }).answers ?? []).some((a: { value: unknown }) => String(a.value).toLowerCase().includes(s)),
       );
     }
     return filtered;

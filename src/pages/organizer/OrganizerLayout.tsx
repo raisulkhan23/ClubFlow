@@ -3,64 +3,127 @@ import { Link, NavLink, Outlet, useNavigate, useLocation } from "react-router";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import {
+  CalendarDays,
+  ClipboardList,
   FolderOpen,
   LayoutDashboard,
   ListTodo,
-  MapPin,
   Megaphone,
-  Users,
+  PieChart,
+  QrCode,
+  ScanLine,
   Settings,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { roleHome } from "@/components/RequireRole";
 
-const items: { to: string; label: string; icon: LucideIcon }[] = [
-  { to: "/dashboard/tasks", label: "Tasks", icon: ListTodo },
-  { to: "/dashboard/events", label: "Events", icon: MapPin },
-  { to: "/dashboard/participants", label: "Participants", icon: Users },
-  { to: "/dashboard/announcements", label: "Announcements", icon: Megaphone },
-  { to: "/dashboard/settings", label: "Settings", icon: Settings },
+type NavEntry = { to: string; label: string; icon: LucideIcon };
+type NavGroup = { heading?: string; items: NavEntry[] };
+
+const groups: NavGroup[] = [
+  {
+    items: [{ to: "/organizer", label: "Overview", icon: LayoutDashboard }],
+  },
+  {
+    heading: "Event operations",
+    items: [
+      { to: "/organizer/events", label: "Events", icon: CalendarDays },
+      { to: "/organizer/participants", label: "Participants", icon: Users },
+      { to: "/organizer/checkin", label: "Check-in", icon: ScanLine },
+    ],
+  },
+  {
+    heading: "Event content",
+    items: [
+      { to: "/organizer/announcements", label: "Announcements", icon: Megaphone },
+      { to: "/organizer/tasks", label: "Tasks", icon: ListTodo },
+    ],
+  },
+  {
+    heading: "Team & insights",
+    items: [
+      { to: "/organizer/volunteers", label: "Volunteers", icon: QrCode },
+      { to: "/organizer/analytics", label: "Analytics", icon: PieChart },
+      { to: "/organizer/settings", label: "Settings", icon: Settings },
+    ],
+  },
 ];
 
-export function OrganizerLayout() {
+export default function OrganizerLayout() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const links = (
+    <nav className="flex-1 space-y-5 overflow-y-auto p-3">
+      {groups.map((group, gi) => (
+        <div key={gi} className="space-y-1">
+          {group.heading && (
+            <p className="px-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+              {group.heading}
+            </p>
+          )}
+          {group.items.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/organizer"}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  isActive && "bg-primary/10 text-primary",
+                )
+              }
+            >
+              <item.icon className="size-4 shrink-0" />
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
+      ))}
+    </nav>
+  );
+
+  const mobileBar = (
+    <nav className="flex items-center justify-around border-b bg-background/95 px-2 py-2 backdrop-blur lg:hidden">
+      {groups
+        .flatMap((g) => g.items)
+        .map((item) => {
+          const active = location.pathname === item.to || (item.to !== "/organizer" && location.pathname.startsWith(item.to));
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={cn(
+                "flex min-w-[64px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-[10px] font-medium text-muted-foreground",
+                active && "text-primary",
+              )}
+            >
+              <item.icon className="size-5" />
+              {item.label}
+            </NavLink>
+          );
+        })}
+    </nav>
+  );
 
   return (
     <div className="flex h-screen flex-col">
-      <div className="flex flex-1 flex-col lg:flex-row">
-        <aside className="w-64 shrink-0 border-r bg-muted/40 lg:flex lg:flex-col lg:border-r lg:bg-transparent">
-          <div className="flex h-14 items-center border-b px-4 lg:h-[72px] lg:border-b lg:bg-transparent">
+      {mobileBar}
+      <div className="flex flex-1 flex-col overflow-hidden lg:flex-row">
+        <aside className="hidden w-64 shrink-0 flex-col border-r bg-sidebar px-0 py-5 lg:flex">
+          <div className="mb-5 flex items-center px-5">
             <Link to="/" className="flex items-center gap-2">
-              <LayoutDashboard className="size-5" />
-              <span className="font-semibold">Organizer</span>
+              <ClipboardList className="size-5 text-primary" />
+              <span className="font-semibold">Organizer Portal</span>
             </Link>
           </div>
-          <nav className="flex-1 overflow-y-auto p-3">
-            {items.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end
-                onClick={() => {
-                  window.location.reload();
-                }}
-                className={({ isActive }) =>
-                  cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-                    isActive && "bg-muted text-foreground",
-                  )
-                }
-              >
-                <item.icon className="size-4" />
-                {item.label}
-              </NavLink>
-            ))}
-          </nav>
-          <div className="border-t p-3 lg:border-t lg:bg-transparent">
+          {links}
+          <div className="border-t p-3">
             <Button
-              variant="outline"
-              className="w-full justify-start gap-2"
+              variant="ghost"
+              className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground"
               onClick={() => {
                 const home = roleHome(user?.role ?? "participant");
                 navigate(`/${home}`);
@@ -70,7 +133,7 @@ export function OrganizerLayout() {
             </Button>
           </div>
         </aside>
-        <main className="flex-1 overflow-y-auto p-6">
+        <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
       </div>

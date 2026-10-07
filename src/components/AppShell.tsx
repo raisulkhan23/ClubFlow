@@ -236,17 +236,17 @@ function GlobalSearch() {
       )}
     </div>
   );
-}
-
-export function AppShell({
+}export function AppShell({
   nav,
   variant,
   title,
+  children,
 }: {
   nav: NavItem[];
   variant: "organizer" | "participant" | "volunteer";
   title: string;
-}) {
+  children?: React.ReactNode;
+  }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const markAllRead = useMutation(api.notifications.markAllRead);
 

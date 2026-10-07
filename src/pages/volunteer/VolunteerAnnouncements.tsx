@@ -1,16 +1,24 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Megaphone, Bell } from "lucide-react";
+import { Megaphone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Empty, EmptyTitle, EmptyDescription, EmptyMedia, EmptyContent } from "@/components/ui/empty";
+import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from "@/components/ui/empty";
 import { fmtDate } from "@/lib/format";
 
+type Announcement = {
+  _id: string;
+  title: string;
+  message: string;
+  priority: string;
+  published: boolean;
+  createdAt: number;
+};
+
 export default function VolunteerAnnouncements() {
-  const [announcements] = useQuery(api.announcements.list);
+  const announcements = useQuery(api.volunteers.myAnnouncements) as Announcement[] | undefined;
 
   const active = (announcements ?? []).filter((a) => a.published);
-  const unread = active.filter((a) => !a.read).length;
 
   return (
     <div className="space-y-6 px-4 py-8">
@@ -21,18 +29,13 @@ export default function VolunteerAnnouncements() {
         </p>
       </div>
 
-      {unread > 0 && (
-        <Card className="border-l-4 border-l-amber-500">
-          <CardContent className="flex items-center gap-3">
-            <Bell className="size-4 text-amber-500" />
-            <p className="text-sm">
-              <span className="font-medium">{unread}</span> new announcement{unread === 1 ? "" : "s"} ready to read.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {active.length === 0 ? (
+      {announcements === undefined ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-24 animate-pulse rounded-lg bg-muted/50" />
+          ))}
+        </div>
+      ) : active.length === 0 ? (
         <Empty>
           <EmptyMedia variant="icon">
             <Megaphone className="size-5" />
@@ -55,29 +58,23 @@ export default function VolunteerAnnouncements() {
                         className={
                           a.priority === "urgent"
                             ? "bg-rose-500/10 text-rose-700"
-                            : a.priority === "high"
+                            : a.priority === "important"
                             ? "bg-amber-500/10 text-amber-700"
                             : ""
                         }
                       >
                         {a.priority}
                       </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {a.published ? "Published" : "Draft"}
-                      </Badge>
                     </div>
                     <CardTitle className="text-lg mt-1">{a.title}</CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                    <p className="text-sm text-muted-foreground mt-1 whitespace-pre-line">
                       {a.message}
                     </p>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{fmtDate(a.createdAt)}</span>
-                  <span>{a.views ?? 0} views</span>
-                </div>
+                <div className="text-xs text-muted-foreground">{fmtDate(a.createdAt)}</div>
               </CardContent>
             </Card>
           ))}

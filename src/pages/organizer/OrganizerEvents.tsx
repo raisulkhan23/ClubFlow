@@ -64,19 +64,31 @@ export default function OrganizerEvents() {
         </Select>
       </div>
 
-      {filtered.length === 0 ? (
+      {events === undefined ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-44 animate-pulse rounded-xl bg-muted/50" />
+          ))}
+        </div>
+      ) : events.length === 0 ? (
         <Empty>
-          <EmptyTitle>No events here</EmptyTitle>
+          <EmptyTitle>No events yet</EmptyTitle>
           <EmptyDescription>
-            {statusFilter === "all"
-              ? "You haven't created any events yet."
-              : `No ${statusFilter} events found.`}
+            Create your first event to start accepting registrations.
           </EmptyDescription>
           <EmptyContent>
             <Button asChild>
-              <a href="/organizer/events/new">Create your first event</a>
+              <a href="/organizer/events/new">
+                <Plus className="mr-2 size-4" />
+                Create your first event
+              </a>
             </Button>
           </EmptyContent>
+        </Empty>
+      ) : filtered.length === 0 ? (
+        <Empty>
+          <EmptyTitle>No {statusFilter} events</EmptyTitle>
+          <EmptyDescription>Try a different filter.</EmptyDescription>
         </Empty>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

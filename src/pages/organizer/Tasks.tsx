@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Plus, CheckCircle2, Clock, Calendar, User } from "lucide-react";
+import type { Id } from "@/convex/_generated/dataModel";
+import { Plus, CheckCircle2, Clock, Calendar, User, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,8 +46,8 @@ export default function Tasks() {
     const due = dueAt ? Number(new Date(dueAt).getTime()) : undefined;      await createTask({
       title,
       description: description.trim() || undefined,
-      assigneeId: assignee ?? undefined,
-      eventId: filterEvent ?? undefined,
+      assigneeId: (assignee ?? undefined) as Id<"users"> | undefined,
+      eventId: (filterEvent ?? undefined) as Id<"events"> | undefined,
       deadline: due,
       priority: "medium",
     });
@@ -59,12 +60,12 @@ export default function Tasks() {
   };
 
   const handleStatusChange = async (id: string, status: "todo" | "in_progress" | "done") => {
-    await updateTask({ id, status });
+    await updateTask({ id: id as Id<"tasks">, status });
     window.location.reload();
   };
 
   const handleRemove = async (id: string) => {
-    await removeTask({ id });
+    await removeTask({ id: id as Id<"tasks"> });
     window.location.reload();
   };
 
@@ -212,7 +213,7 @@ export default function Tasks() {
           {filtered
             .sort((a, b) => {
               const rank = { done: 2, todo: 0, in_progress: 1 } as const;
-              return rank[b.status] - rank[a.status] ?? 0;
+              return (rank[b.status] ?? 0) - (rank[a.status] ?? 0);
             })
             .map((task) => {
               const tabColor = TABS.find((t) => t.key === task.status)?.color ?? "";
