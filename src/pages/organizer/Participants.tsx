@@ -66,10 +66,7 @@ export default function Participants() {
   const [search, setSearch] = useState("");
 
   const events = useQuery(api.events.listForOrganizer);
-  const registrations = useQuery(
-    api.registrations.listAllForOrganizer,
-    eventFilter ? { eventId: eventFilter as Id<"events"> } : "skip",
-  );
+  const registrations = useQuery(api.registrations.listAllForOrganizer);
 
   const rows = useMemo(() => {
     const list = registrations ?? [];
@@ -113,7 +110,7 @@ export default function Participants() {
                   ["Name", "Email", "Status", "Event", "Registered", "Checked in"].join(","),
                   ...rows.map((r) => [
                     r.participantName,
-                    r.participantEmail ?? "",
+                    (r as unknown as { email?: string }).email ?? "",
                     r.status,
                     r.eventTitle ?? "",
                     r.createdAt ? new Date(r.createdAt).toISOString() : "",

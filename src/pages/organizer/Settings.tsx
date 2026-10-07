@@ -23,11 +23,6 @@ export default function Settings() {
     name: "",
     slug: "",
     contactEmail: "",
-    contactPhone: "",
-    bio: "",
-    location: "",
-    isOpenToRegistrations: true,
-    supportsCertificates: true,
   });
 
   const [isDirty, setIsDirty] = useState(false);
@@ -38,11 +33,6 @@ export default function Settings() {
         name: myClub.name ?? "",
         slug: myClub.slug ?? "",
         contactEmail: myClub.contactEmail ?? "",
-        contactPhone: myClub.contactPhone ?? "",
-        bio: myClub.bio ?? "",
-        location: myClub.location ?? "",
-        isOpenToRegistrations: myClub.isOpenToRegistrations ?? true,
-        supportsCertificates: myClub.supportsCertificates ?? true,
       });
     }
   };
@@ -51,11 +41,6 @@ export default function Settings() {
     await updateMyClub({
       name: club.name,
       contactEmail: club.contactEmail,
-      contactPhone: club.contactPhone ?? undefined,
-      bio: club.bio ?? undefined,
-      location: club.location ?? undefined,
-      isOpenToRegistrations: club.isOpenToRegistrations,
-      supportsCertificates: club.supportsCertificates,
     });
     setIsDirty(false);
     syncFromServer();
@@ -133,58 +118,6 @@ export default function Settings() {
                 onChange={(e) => { club.contactEmail = e.target.value; setIsDirty(true); }}
                 placeholder="events@drmc.org"
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="contact-phone">Contact phone</Label>
-              <Input
-                id="contact-phone"
-                value={club.contactPhone}
-                onChange={(e) => { club.contactPhone = e.target.value; setIsDirty(true); }}
-                placeholder="+1 555 000 0000"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={club.location}
-                onChange={(e) => { club.location = e.target.value; setIsDirty(true); }}
-                placeholder="Downtown campus, Building C"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="bio">About your club</Label>
-              <Textarea
-                id="bio"
-                value={club.bio}
-                onChange={(e) => { club.bio = e.target.value; setIsDirty(true); }}
-                placeholder="We host tech events, hackathons, and weekly workshops for students…"
-                rows={3}
-              />
-            </div>
-
-            <Separator />
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="open-to-registrations" className="text-sm">Open to new registrations</Label>
-                <Switch
-                  id="open-to-registrations"
-                  checked={club.isOpenToRegistrations}
-                  onCheckedChange={(v) => { club.isOpenToRegistrations = v; setIsDirty(true); }}
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="supports-certificates" className="text-sm">Issue certificates</Label>
-                <Switch
-                  id="supports-certificates"
-                  checked={club.supportsCertificates}
-                  onCheckedChange={(v) => { club.supportsCertificates = v; setIsDirty(true); }}
-                />
-              </div>
             </div>
 
             {isDirty && (
