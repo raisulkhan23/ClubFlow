@@ -11,8 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { fmtDate, statusColor } from "@/lib/format";
+import { fmtDate } from "@/lib/format";
 import type { PublicEvent } from "@/convex/events";
+
+const STATUS_COLORS: Record<string, string> = {
+  todo: "bg-muted text-muted-foreground",
+  in_progress: "bg-amber-500/10 text-amber-600",
+  done: "bg-emerald-500/10 text-emerald-600",
+};
 
 export default function OrganizerOverview() {
   const { user } = useAuth();
@@ -20,16 +26,19 @@ export default function OrganizerOverview() {
   const pendingTasks = useQuery(api.tasks.list);
 
   const total = events?.length ?? 0;
-  const upcoming = events?.filter((e) => new Date(e.startAt) > new Date() && e.status === "published").length ?? 0;
+  const upcoming = events?.filter(
+    (e) => new Date(e.startAt) > new Date() && e.status === "published",
+  ).length ?? 0;
   const live = events?.filter((e) => e.status === "live").length ?? 0;
   const recent = (events ?? [])
     .filter((e) => e.status === "completed")
     .slice(0, 3);
 
-  const tasks = pendingTasks?.filter((t) => t.status !== "done") ?? [];
-  const doneThisWeek = pendingTasks?.filter(
-    (t) => t.status === "done" && t.updatedAt > Date.now() - 7 * 86400000,
-  ).length ?? 0;
+  const tasks = (pendingTasks ?? []).filter((t) => t.status !== "done");
+  const doneThisWeek =
+    (pendingTasks ?? []).filter(
+      (t) => t.status === "done" && t.updatedAt > Date.now() - 7 * 86400000,
+    ).length ?? 0;
 
   return (
     <div className="space-y-8 px-4 py-8">
@@ -109,16 +118,19 @@ export default function OrganizerOverview() {
           <CardContent>
             <ul className="space-y-3">
               {tasks.slice(0, 6).map((t) => (
-                <li key={t._id} className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+                <li
+                  key={t._id}
+                  className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2"
+                >
                   <Clock className="mt-0.5 size-4 text-muted-foreground shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{t.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {t.dueAt ? `${fmtDate(t.dueAt)} · ` : ""}
+                      {t.deadline ? `${fmtDate(t.deadline)} · ` : ""}
                       {t.assigneeName ?? "Unassigned"}
                     </p>
                   </div>
-                  <Badge variant="outline" className={statusColor(t.status)}>
+                  <Badge variant="outline" className={STATUS_COLORS[t.status] ?? ""}>
                     {t.status}
                   </Badge>
                 </li>
@@ -139,9 +151,14 @@ export default function OrganizerOverview() {
             ) : (
               <ul className="space-y-3">
                 {recent.map((e: PublicEvent) => (
-                  <li key={e._id} className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+                  <li
+                    key={e._id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-muted/30 px-3 py-2"
+                  >
                     <div>
-                      <p className="text-sm font-medium truncate max-w-[200px]">{e.title}</p>
+                      <p className="text-sm font-medium truncate max-w-[200px]">
+                        {e.title}
+                      </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {fmtDate(e.endAt)} · {e.confirmedCount} attended
                       </p>

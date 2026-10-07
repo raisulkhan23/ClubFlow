@@ -8,9 +8,8 @@ import {
   ListTodo,
   MapPin,
   Megaphone,
-  People,
-  Settings,
   Users,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { roleHome } from "@/components/RequireRole";
@@ -18,7 +17,7 @@ import { roleHome } from "@/components/RequireRole";
 const items: { to: string; label: string; icon: LucideIcon }[] = [
   { to: "/dashboard/tasks", label: "Tasks", icon: ListTodo },
   { to: "/dashboard/events", label: "Events", icon: MapPin },
-  { to: "/dashboard/participants", label: "Participants", icon: People },
+  { to: "/dashboard/participants", label: "Participants", icon: Users },
   { to: "/dashboard/announcements", label: "Announcements", icon: Megaphone },
   { to: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
@@ -26,7 +25,6 @@ const items: { to: string; label: string; icon: LucideIcon }[] = [
 export function OrganizerLayout() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   return (
     <div className="flex h-screen flex-col">
@@ -45,7 +43,6 @@ export function OrganizerLayout() {
                 to={item.to}
                 end
                 onClick={() => {
-                  // Keep stale state fresh after mutations by reloading the data layer.
                   window.location.reload();
                 }}
                 className={({ isActive }) =>

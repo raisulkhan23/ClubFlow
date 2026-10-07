@@ -1,8 +1,7 @@
-import { useQuery } from "convex/react";
+import { useQuery, useState, useMemo } from "react";
 import { api } from "@/convex/_generated/api";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -26,10 +25,9 @@ const FILTERS: { value: string; label: string }[] = [
 
 export default function OrganizerEvents() {
   const events = useQuery(api.events.listForOrganizer);
-  const filter = useQuery(api.events._internal.filter); // placeholder, replaced below
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const [statusFilter, setStatusFilter] = React.useState("all");
-  const filtered = React.useMemo<PublicEvent[]>(() => {
+  const filtered = useMemo<PublicEvent[]>(() => {
     const list = events ?? [];
     if (statusFilter === "all") return list;
     return list.filter((e) => e.status === statusFilter);

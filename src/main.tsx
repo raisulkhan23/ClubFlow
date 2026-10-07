@@ -6,6 +6,8 @@ import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
 import React, { StrictMode, useEffect, lazy, Suspense } from "react";
+
+
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import "./index.css";
@@ -24,7 +26,7 @@ const RegistrationDetail = lazy(() => import("./pages/participant/RegistrationDe
 const Notifications = lazy(() => import("./pages/participant/Notifications.tsx"));
 const MyCertificates = lazy(() => import("./pages/participant/MyCertificates.tsx"));
 const Profile = lazy(() => import("./pages/participant/Profile.tsx"));
-const OrganizerLayout = lazy(() => import("./pages/organizer/OrganizerLayout.tsx"));
+const OrganizerLayout = lazy(() => import("./pages/organizer/OrganizerLayout"));
 const OrganizerOverview = lazy(() => import("./pages/organizer/OrganizerOverview.tsx"));
 const OrganizerEvents = lazy(() => import("./pages/organizer/OrganizerEvents.tsx"));
 const EventEditor = lazy(() => import("./pages/organizer/EventEditor.tsx"));

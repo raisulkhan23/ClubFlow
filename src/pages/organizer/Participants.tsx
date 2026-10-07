@@ -1,6 +1,6 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Download, Search } from "lucide-react";
+import { Download, Search, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -19,9 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Empty, EmptyTitle, EmptyDescription, EmptyMedia, EmptyContent } from "@/components/ui/empty";
+import {
+  Empty,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyMedia,
+  EmptyContent,
+} from "@/components/ui/empty";
 import { fmtDate } from "@/lib/format";
 import { useState, useMemo } from "react";
+import type { Id } from "@/convex/_generated/dataModel";
 
 const STATUS_FILTER = [
   { value: "all", label: "All statuses" },
@@ -29,37 +36,40 @@ const STATUS_FILTER = [
   { value: "pending", label: "Pending" },
   { value: "checked_in", label: "Checked in" },
   { value: "cancelled", label: "Cancelled" },
+  { value: "rejected", label: "Rejected" },
 ];
+
+const REGISTERED_COLOR: Record<string, string> = {
+  confirmed: "bg-emerald-500/10 text-emerald-600",
+  pending: "bg-amber-500/10 text-amber-600",
+  cancelled: "bg-muted text-muted-foreground",
+  rejected: "bg-rose-500/10 text-rose-600",
+  checked_in: "bg-indigo-500/10 text-indigo-600",
+};
+
+const TOOLTIP_STATUS: Record<string, string> = {
+  confirmed: "Confirmed — will attend",
+  pending: "Awaiting approval",
+  registered: "Registered",
+  checked_in: "Checked in at the venue",
+  cancelled: "Registration cancelled",
+  rejected: "Registration rejected",
+};
 
 export default function Participants() {
   const urlParams = new URLSearchParams(window.location.search);
   const eventIdParam = urlParams.get("eventId");
-  const [eventFilter, setEventFilter] = useState<string | null>(eventIdParam ?? null);
+  const [eventFilter, setEventFilter] = useState<string | null>(
+    eventIdParam ?? null,
+  );
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
 
   const events = useQuery(api.events.listForOrganizer);
   const registrations = useQuery(
-    api.registrations.listForOrganizer,
-    eventFilter ? { eventId: eventFilter } : {},
+    api.registrations.listAllForOrganizer,
+    eventFilter ? { eventId: eventFilter as Id<"events"> } : "skip",
   );
-
-  const REGISTERED_COLOR = {
-    confirmed: "bg-emerald-500/10 text-emerald-600",
-    pending: "bg-amber-500/10 text-amber-600",
-    cancelled: "bg-muted text-muted-foreground",
-    rejected: "bg-rose-500/10 text-rose-600",
-    checked_in: "bg-indigo-500/10 text-indigo-600",
-  } as const;
-
-  const TOOLTIP_STATUS: Record<string, string> = {
-    confirmed: "Confirmed — will attend",
-    pending: "Awaiting approval",
-    registered: "Registered",
-    checked_in: "Checked in at the venue",
-    cancelled: "Registration cancelled",
-    rejected: "Registration rejected",
-  };
 
   const rows = useMemo(() => {
     const list = registrations ?? [];
@@ -136,7 +146,10 @@ export default function Participants() {
             className="pl-9"
           />
         </div>
-        <Select value={eventFilter ?? "all"} onValueChange={(v) => setEventFilter(v === "all" ? null : v)}>
+        <Select
+          value={eventFilter ?? "all"}
+          onValueChange={(v) => setEventFilter(v === "all" ? null : v)}
+        >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="All events" />
           </SelectTrigger>
@@ -204,14 +217,14 @@ export default function Participants() {
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className={REGISTERED_COLOR[r.status]}
-                      style={{ "--tw-tooltip": TOOLTIP_STATUS[r.status] } as React.CSSProperties}
+                      className={REGISTERED_COLOR[r.status] ?? ""}
+                      style={{ "--tw-tooltip": TOOLTIP_STATUS[r.status] ?? "" } as React.CSSProperties}
                     >
                       {r.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {r.eventTitle ?? em}
+                    {r.eventTitle ?? "—"}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {r.createdAt ? fmtDate(r.createdAt) : "—"}
@@ -238,5 +251,3 @@ export default function Participants() {
     </div>
   );
 }
-
-const em = <em className="text-muted-foreground italic">—</em>;

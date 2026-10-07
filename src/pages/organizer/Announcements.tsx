@@ -23,7 +23,7 @@ export default function Announcements() {
   const [publishNow, setPublishNow] = useState(false);
 
   const events = useQuery(api.events.listForOrganizer);
-  const [allAnnouncements] = useQuery(api.announcements.listForOrganizer);
+  const allAnnouncements = useQuery(api.announcements.listForOrganizer, {});
   const create = useMutation(api.announcements.create);
   const setPublished = useMutation(api.announcements.setPublished);
   const remove = useMutation(api.announcements.remove);
@@ -281,9 +281,8 @@ export default function Announcements() {
                       <>Draft · not visible to attendees</>
                     )}
                   </span>
-                  <span>
-                    {a.views ?? 0} views
-                  </span>
+                  <span>{a._creationTime ? "—" : "—"}
+                    </span>
                 </div>
               </CardContent>
             </Card>

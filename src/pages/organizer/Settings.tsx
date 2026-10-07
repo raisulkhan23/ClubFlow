@@ -16,7 +16,9 @@ import { fmtDate } from "@/lib/format";
 export default function Settings() {
   const [section, setSection] = useState<"profile" | "notifications" | "visibility">("profile");
 
-  const currentUser = useQuery(api.users.getCurrent);
+  const myClub = useQuery(api.clubs.getMyClub);
+  const updateMyClub = useMutation(api.clubs.updateMyClub);
+
   const [club, setClub] = useState({
     name: "",
     slug: "",
@@ -29,11 +31,24 @@ export default function Settings() {
   });
 
   const [isDirty, setIsDirty] = useState(false);
-  const updateClub = useMutation(api.clubs.update);
+
+  const syncFromServer = () => {
+    if (myClub) {
+      setClub({
+        name: myClub.name ?? "",
+        slug: myClub.slug ?? "",
+        contactEmail: myClub.contactEmail ?? "",
+        contactPhone: myClub.contactPhone ?? "",
+        bio: myClub.bio ?? "",
+        location: myClub.location ?? "",
+        isOpenToRegistrations: myClub.isOpenToRegistrations ?? true,
+        supportsCertificates: myClub.supportsCertificates ?? true,
+      });
+    }
+  };
 
   const handleSave = async () => {
-    await updateClub({
-      clubId: club._id,
+    await updateMyClub({
       name: club.name,
       contactEmail: club.contactEmail,
       contactPhone: club.contactPhone ?? undefined,
@@ -43,6 +58,7 @@ export default function Settings() {
       supportsCertificates: club.supportsCertificates,
     });
     setIsDirty(false);
+    syncFromServer();
   };
 
   return (

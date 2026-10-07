@@ -1,4 +1,4 @@
-
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Empty, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty";
 import { fmtDate } from "@/lib/format";
+import type { Id } from "@/convex/_generated/dataModel";
 import {
   BarChart3,
   Users,
@@ -28,7 +29,7 @@ export default function Analytics() {
 
   const analytics = useQuery(
     api.events.getEventAnalytics,
-    selectedEventId ? { eventId: selectedEventId } : {},
+    selectedEventId ? { eventId: selectedEventId as Id<"events"> } : "skip",
   );
 
   const selected = events?.find((e) => e._id === selectedEventId);
@@ -175,8 +176,7 @@ export default function Analytics() {
                     { key: "rejected", label: "Rejected", color: "bg-rose-500" },
                     { key: "checked_in", label: "Checked in", color: "bg-indigo-500" },
                   ].map((row) => {
-                    const count = analytics.totals[row.key as keyof typeof analytics.totals] ??
-                      0;
+                    const count = (analytics.totals as Record<string, number>)[row.key] ?? 0;
                     const pct = analytics.totals.registrations
                       ? Math.round((count / analytics.totals.registrations) * 100)
                       : 0;
@@ -290,5 +290,3 @@ function BarChart({
 
   return <div className={className} style={{ height }}>{bars}</div>;
 }
-
-

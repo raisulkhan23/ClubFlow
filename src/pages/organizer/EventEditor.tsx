@@ -1,10 +1,11 @@
 import { useState, useCallback } from "react";
 import { useParams } from "react-router";
-import { useMutation } from "convex/react";
-import { useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { EventInput } from "@/convex/events";
 import type { FormField } from "@/convex/schema";
+import type { Id } from "@/convex/_generated/dataModel";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,6 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { X } from "lucide-react";
 
 interface FormFieldEditorProps {
   field: FormField;
@@ -109,7 +111,6 @@ function OptionEditor({
   );
 }
 
-const X = "✕";
 
 export default function EventEditor() {
   const { eventId } = useParams<{ eventId: string }>();
@@ -118,10 +119,12 @@ export default function EventEditor() {
   const [submitting, setSubmitting] = useState(false);
 
   const event = useQuery(
-    isNew ? null : api.events.getForOrganizer,
-    isNew ? {} : { eventId: eventId! },
+    isNew
+      ? { api: { events: { getForOrganizer: null } } } as never
+      : api.events.getForOrganizer,
+    isNew ? {} : { eventId: eventId! as Id<"events"> },
   );
-  const eventData = event ?? null;
+  const eventData = (event as { event?: { title?: string; status?: string; updatedAt?: number; formFields?: FormField[] } } | null | undefined) ?? null;
 
   const updateFormFields = useMutation(api.events.updateFormFields);
   const createEvent = useMutation(api.events.createEvent);
@@ -132,6 +135,28 @@ export default function EventEditor() {
   const [formFields, setFormFields] = useState<FormField[]>(
     (eventData?.event?.formFields ?? []) as FormField[],
   );
+
+  const removeField = useCallback((i: number) => {
+    setFormFields((prev) => prev.filter((_, idx) => idx !== i));
+  }, []);
+  const updateField = useCallback((i: number, f: FormField) => {
+    setFormFields((prev) => prev.map((prevField, idx) => (idx === i ? f : prevField)));
+  }, []);
+  const updateOptions = useCallback((i: number, opts: string[]) => {
+    setFormFields((prev) => prev.map((f, idx) => (idx === i ? { ...f, options: opts } : f)));
+  }, []);
+  const addOption = useCallback((i: number) => {
+    setFormFields((prev) =>
+      prev.map((f, idx) => (idx === i ? { ...f, options: [...(f.options ?? []), ""] } : f)),
+    );
+  }, []);
+  const removeOption = useCallback((i: number, idx: number) => {
+    setFormFields((prev) =>
+      prev.map((f, fieldIdx) =>
+        fieldIdx === i ? { ...f, options: f.options?.filter((_, oi) => oi !== idx) ?? [] } : f,
+      ),
+    );
+  }, []);
 
   const addField = useCallback(() => {
     const id = `f_${Date.now()}`;
@@ -154,7 +179,7 @@ export default function EventEditor() {
         window.location.href = `/organizer/events/${eventId}`;
         return;
       }
-      await updateEvent({ eventId: eventId!, input });
+      await updateEvent({ eventId: eventId! as Id<"events">, input });
       toast.success("Draft saved");
     } finally {
       setSaving(false);
@@ -166,7 +191,7 @@ export default function EventEditor() {
       if (!eventId) return;
       setSubmitting(true);
       try {
-        await setStatus({ eventId, status });
+        await setStatus({ eventId: eventId! as Id<"events">, status });
         toast.success(`Event ${status}`);
       } finally {
         setSubmitting(false);
@@ -177,13 +202,35 @@ export default function EventEditor() {
 
   const handleDuplicate = useCallback(async () => {
     if (!eventId) return;
-    const { eventId: newId } = await duplicate({ eventId });
+    const { eventId: newId } = await duplicate({ eventId: eventId! as Id<"events"> });
     window.location.href = `/organizer/events/${newId}`;
   }, [duplicate, eventId]);
 
   const [form, setForm] = useState<EventInput>(() => {
     if (!eventData?.event) return defaultForm();
-    const e = eventData.event;
+    const e = eventData.event as unknown as {
+      title: string;
+      category: "Technology" | "Robotics" | "Design" | "Gaming" | "Business" | "Cultural";
+      shortDescription: string;
+      description: string;
+      startAt: number;
+      endAt: number;
+      venue: string;
+      capacity: number;
+      registrationDeadline: number;
+      teamEvent: boolean;
+      minTeamSize?: number;
+      maxTeamSize?: number;
+      requiresApproval: boolean;
+      contactEmail: string;
+      contactPhone?: string;
+      prizes?: string;
+      eligibility?: string;
+      rules?: string;
+      coverTheme?: number;
+      faq?: Array<{ q: string; a: string }>;
+      schedule?: Array<{ id: string; title: string; time: string; description?: string }>;
+    };
     return {
       title: e.title,
       category: e.category,
@@ -656,7 +703,7 @@ export default function EventEditor() {
                           <Label htmlFor={`${f.id}-type`}>Type</Label>
                           <FieldTypeSelect
                             value={f.type}
-                            onChange={(v) => updateField(i, { ...f, type: v })}
+                            onChange={(v) => updateField(i, { ...f, type: v })
                           />
                         </div>
                       </div>
@@ -664,8 +711,7 @@ export default function EventEditor() {
                         <Label htmlFor={`${f.id}-desc`}>Description (optional)</Label>
                         <Input
                           id={`${f.id}-desc`}
-                          value={f.description ?? ""}
-                          onChange={(e) =>
+                          value={f.description ?? ""}                            onChange={(e) =>
                             updateField(i, { ...f, description: e.target.value || undefined })
                           }
                           placeholder="Help text shown below the field"
@@ -737,13 +783,12 @@ export default function EventEditor() {
             <CardTitle className="text-base">Publish status</CardTitle>
             {event?.event && (
               <CardDescription>
-                Last updated {fmtDate(event.event.updatedAt)} · Status:{" "}
-                <Badge variant="secondary">{event.event.status}</Badge>
+                Last updated {fmtDate(eventData?.event?.updatedAt ?? 0)} · Status:{" "}
+                <Badge variant="secondary">{eventData?.event?.status ?? "draft"}</Badge>
               </CardDescription>
             )}
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
-            {isNew ?
+          <CardContent className="flex flex-wrap gap-3">                  {isNew ?
               (
                 <Button
                   className="flex-1"
@@ -775,7 +820,7 @@ export default function EventEditor() {
                     <Save className="mr-2 size-4" />
                     Save draft
                   </Button>
-                  {form.status !== "published" && (
+                  {eventData?.event?.status !== "published" && (
                     <Button
                       className="flex-1"
                       onClick={() => handlePublish("published")}
@@ -785,7 +830,7 @@ export default function EventEditor() {
                       Publish
                     </Button>
                   )}
-                  {form.status !== "registration_closed" && (
+                  {eventData?.event?.status !== "registration_closed" && (
                     <Button
                       variant="outline"
                       className="flex-1"
@@ -796,7 +841,7 @@ export default function EventEditor() {
                       Close registration
                     </Button>
                   )}
-                  {form.status !== "live" && (
+                  {eventData?.event?.status !== "live" && (
                     <Button
                       variant="outline"
                       className="flex-1"

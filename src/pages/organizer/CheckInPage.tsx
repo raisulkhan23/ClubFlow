@@ -1,32 +1,23 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { CheckCircle2, Clock, ScanLine, UserSearch } from "lucide-react";
+import { CheckCircle2, ScanLine, UserSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Empty, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
-import { Empty, EmptyTitle, EmptyDescription, EmptyMedia, EmptyContent } from "@/components/ui/empty";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { fmtDate } from "@/lib/format";
 import { QrScannerPanel } from "@/components/QrScannerPanel";
 import type { Id } from "@/convex/_generated/dataModel";
 
-const STATUS_BADGE = {
-  confirmed: { label: "Confirmed", variant: "secondary", className: "" },
-  checked_in: { label: "Checked in", variant: "default", className: "bg-emerald-500/10 text-emerald-700 border-emerald-200" },
-  pending: { label: "Pending", variant: "outline", className: "border-amber-300 text-amber-700" },
-  cancelled: { label: "Cancelled", variant: "outline", className: "border-muted text-muted-foreground" },
-  rejected: { label: "Rejected", variant: "outline", className: "border-rose-300 text-rose-700" },
-} as const;
-
 const INITIAL_SCAN = {
   found: false,
   name: "",
-  status: "confirmed",
+  status: "confirmed" as "confirmed",
   checkedInAt: null as number | null,
-};
+} as const;
 
 export default function CheckInPage() {
   const [mode, setMode] = useState<"scan" | "search">("scan");
@@ -42,11 +33,17 @@ export default function CheckInPage() {
   );
   const registrations = useQuery(
     api.registrations.listForEvent,
-    activeEvent ? { eventId: activeEvent._id as Id<"events">, status: "all" } : {},
+    activeEvent
+      ? { eventId: activeEvent._id as Id<"events"> }
+      : "skip",
   );
 
-  const checkedIn = registrations?.filter((r) => r.status === "checked_in") ?? [];
-  const confirmed = registrations?.filter((r) => r.status === "confirmed") ?? [];
+  const checkedIn = (registrations ?? []).filter(
+    (r) => r.checkedInAt != null,
+  ) ?? [];
+  const confirmed = (registrations ?? []).filter(
+    (r) => r.status === "confirmed" && r.checkedInAt == null,
+  ) ?? [];
 
   useEffect(() => {
     if (events && events.length === 0) {
@@ -62,9 +59,7 @@ export default function CheckInPage() {
 
       const match = registrations?.find((r) => {
         const code =
-          (r.qrCode ?? "").toLowerCase() ||
-          r.participantName.toLowerCase() ||
-          (r.email ?? "").toLowerCase();
+          r.participantName.toLowerCase();
         return code.includes(cleaned.toLowerCase());
       });
 
@@ -77,11 +72,18 @@ export default function CheckInPage() {
       setScanResult({
         found: true,
         name: match.participantName,
-        status: match.status,
+        status: match.checkedInAt != null
+          ? ("checked_in" as const)
+          : (match.status as "confirmed" | "pending" | "cancelled" | "rejected"),
         checkedInAt: match.checkedInAt ? Number(match.checkedInAt) : null,
       });
 
-      if (match.status === "checked_in") {
+      if (match.checkedInAt != null) {
+        setTimeout(() => setScanResult(INITIAL_SCAN), 3000);
+        return;
+      }
+
+      if (match.status === "cancelled" || match.status === "rejected" || match.status === "pending") {
         setTimeout(() => setScanResult(INITIAL_SCAN), 3000);
         return;
       }
@@ -106,9 +108,7 @@ export default function CheckInPage() {
     setScanResult(INITIAL_SCAN);
     const match = registrations?.find((r) => {
       const hay =
-        r.participantName.toLowerCase() +
-        (r.email ?? "").toLowerCase() +
-        (r.qrCode ?? "").toLowerCase();
+        r.participantName.toLowerCase();
       return hay.includes(key);
     });
     if (!match) {
@@ -119,10 +119,16 @@ export default function CheckInPage() {
     setScanResult({
       found: true,
       name: match.participantName,
-      status: match.status,
+      status: match.checkedInAt != null
+        ? ("checked_in" as const)
+        : (match.status as "confirmed" | "pending" | "cancelled" | "rejected"),
       checkedInAt: match.checkedInAt ? Number(match.checkedInAt) : null,
     });
-    if (match.status === "checked_in") {
+    if (match.checkedInAt != null) {
+      setTimeout(() => setScanResult(INITIAL_SCAN), 2000);
+      return;
+    }
+    if (match.status === "cancelled" || match.status === "rejected" || match.status === "pending") {
       setTimeout(() => setScanResult(INITIAL_SCAN), 2000);
       return;
     }
@@ -135,9 +141,6 @@ export default function CheckInPage() {
       }, 2500);
     }
   }, [manualName, registrations, lastManual]);
-
-  const activeEventId: string | null =
-    activeEvent ? (activeEvent._id as string) : null;
 
   return (
     <div className="space-y-6 px-4 py-8">
@@ -278,9 +281,9 @@ export default function CheckInPage() {
                   >
                     <div>
                       <p className="font-medium">{r.participantName}</p>
-                      {r.email && (
+                      {r.participantEmail && (
                         <p className="text-xs text-muted-foreground truncate max-w-[160px]">
-                          {r.email}
+                          {r.participantEmail}
                         </p>
                       )}
                     </div>
@@ -306,7 +309,7 @@ export default function CheckInPage() {
                       className="flex items-center justify-between gap-2 rounded-md border border-border/40 bg-muted/30 px-3 py-1.5 text-muted-foreground"
                     >
                       <span className="truncate">{r.participantName}</span>
-                      <span className="text-xs">                      {fmtDate(r.createdAt ?? 0)}</span>
+                      <span className="text-xs">{fmtDate(r.createdAt ?? 0)}</span>
                     </div>
                   ))}
                 </div>
@@ -316,7 +319,7 @@ export default function CheckInPage() {
         </div>
       </div>
 
-      <Separator />
+      <Separator className="my-6" />
     </div>
   );
 }
