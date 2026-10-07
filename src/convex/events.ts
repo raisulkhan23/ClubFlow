@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import { query } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import {
@@ -416,6 +416,36 @@ export const updateEvent = mutation({
       updatedAt: Date.now(),
     });
     void event;
+    return { ok: true };
+  },
+});
+
+/** Replace the event's registration form fields (form builder). */
+export const updateFormFields = mutation({
+  args: {
+    eventId: v.id("events"),
+    fields: v.array(
+      v.object({
+        id: v.string(),
+        type: v.string(),
+        label: v.string(),
+        description: v.optional(v.string()),
+        required: v.boolean(),
+        options: v.optional(v.array(v.string())),
+        dependsOn: v.optional(v.object({ fieldId: v.string(), value: v.string() })),
+      }),
+    ),
+  },
+  handler: async (ctx, { eventId, fields }) => {
+    await requireEventManage(ctx, eventId);
+    for (const f of fields) {
+      if (f.label.trim().length === 0) throw new ConvexError("Every field needs a label.");
+      if (["select", "radio", "checkbox", "multiselect"].includes(f.type)) {
+        const opts = (f.options ?? []).filter((o) => o.trim().length > 0);
+        if (opts.length < 1) throw new ConvexError(`"${f.label}" needs at least one option.`);
+      }
+    }
+    await ctx.db.patch(eventId, { formFields: fields as never, updatedAt: Date.now() });
     return { ok: true };
   },
 });

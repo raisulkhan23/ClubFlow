@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import type { Doc } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { logActivity, nextCertificateId, requireEventManage, requireViewer } from "./helpers";
 import { ROLES } from "./schema";
 

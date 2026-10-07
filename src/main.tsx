@@ -1,6 +1,7 @@
 import '@vly-ai/integrations';
 import { Toaster } from "@/components/ui/sonner";
 import { RequireAuth } from "@/components/RequireAuth";
+import { RequireRole, WorkspaceEntry } from "@/components/RequireRole";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
@@ -12,14 +13,40 @@ import "./index.css";
 // Lazy load route components for better code splitting
 const Landing = lazy(() => import("./pages/Landing.tsx"));
 const AuthPage = lazy(() => import("./pages/Auth.tsx"));
-const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
+const Dashboard = lazy(() => import("./pages/participant/ParticipantOverview.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+const Events = lazy(() => import("./pages/Events.tsx"));
+const EventDetails = lazy(() => import("./pages/EventDetails.tsx"));
+const Register = lazy(() => import("./pages/Register.tsx"));
+const Verify = lazy(() => import("./pages/Verify.tsx"));
+const MyRegistrations = lazy(() => import("./pages/participant/MyRegistrations.tsx"));
+const RegistrationDetail = lazy(() => import("./pages/participant/RegistrationDetail.tsx"));
+const Notifications = lazy(() => import("./pages/participant/Notifications.tsx"));
+const MyCertificates = lazy(() => import("./pages/participant/MyCertificates.tsx"));
+const Profile = lazy(() => import("./pages/participant/Profile.tsx"));
+const OrganizerLayout = lazy(() => import("./pages/organizer/OrganizerLayout.tsx"));
+const OrganizerOverview = lazy(() => import("./pages/organizer/OrganizerOverview.tsx"));
+const OrganizerEvents = lazy(() => import("./pages/organizer/OrganizerEvents.tsx"));
+const EventEditor = lazy(() => import("./pages/organizer/EventEditor.tsx"));
+const Participants = lazy(() => import("./pages/organizer/Participants.tsx"));
+const CheckInPage = lazy(() => import("./pages/organizer/CheckInPage.tsx"));
+const Announcements = lazy(() => import("./pages/organizer/Announcements.tsx"));
+const Tasks = lazy(() => import("./pages/organizer/Tasks.tsx"));
+const Volunteers = lazy(() => import("./pages/organizer/Volunteers.tsx"));
+const Analytics = lazy(() => import("./pages/organizer/Analytics.tsx"));
+const Settings = lazy(() => import("./pages/organizer/Settings.tsx"));
+const VolunteerLayout = lazy(() => import("./pages/volunteer/VolunteerLayout.tsx"));
+const VolunteerHome = lazy(() => import("./pages/volunteer/VolunteerHome.tsx"));
+const VolunteerCheckIn = lazy(() => import("./pages/volunteer/VolunteerCheckIn.tsx"));
+const VolunteerParticipants = lazy(() => import("./pages/volunteer/VolunteerParticipants.tsx"));
+const VolunteerAnnouncements = lazy(() => import("./pages/volunteer/VolunteerAnnouncements.tsx"));
+const Admin = lazy(() => import("./pages/admin/Admin.tsx"));
 
 // Simple loading fallback for route transitions
 function RouteLoading() {
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="animate-pulse text-muted-foreground">Loading...</div>
+      <div className="animate-pulse text-muted-foreground">Loading…</div>
     </div>
   );
 }
@@ -82,8 +109,6 @@ class RootErrorBoundary extends React.Component<
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
-
-
 function RouteSyncer() {
   const location = useLocation();
   useEffect(() => {
@@ -107,7 +132,6 @@ function RouteSyncer() {
   return null;
 }
 
-
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <RootErrorBoundary>
@@ -119,19 +143,119 @@ createRoot(document.getElementById("root")!).render(
           <RouteSyncer />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
+              {/* Public */}
               <Route path="/" element={<Landing />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/events/:slug" element={<EventDetails />} />
               <Route
-                path="/auth"
-                element={<AuthPage redirectAfterAuth="/dashboard" />}
+                path="/events/:slug/register"
+                element={
+                  <RequireAuth redirectImmediately>
+                    <Register />
+                  </RequireAuth>
+                }
               />
+              <Route path="/verify" element={<Verify />} />
+              <Route path="/verify/:certificateId" element={<Verify />} />
+              <Route path="/auth" element={<AuthPage redirectAfterAuth="/dashboard" />} />
+
+              {/* Participant area */}
               <Route
                 path="/dashboard"
                 element={
                   <RequireAuth>
-                    <Dashboard />
+                    <WorkspaceEntry>
+                      <Dashboard />
+                    </WorkspaceEntry>
                   </RequireAuth>
                 }
               />
+              <Route
+                path="/dashboard/registrations"
+                element={
+                  <RequireAuth>
+                    <MyRegistrations />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/registrations/:id"
+                element={
+                  <RequireAuth>
+                    <RegistrationDetail />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/notifications"
+                element={
+                  <RequireAuth>
+                    <Notifications />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/certificates"
+                element={
+                  <RequireAuth>
+                    <MyCertificates />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/dashboard/profile"
+                element={
+                  <RequireAuth>
+                    <Profile />
+                  </RequireAuth>
+                }
+              />
+
+              {/* Organizer area */}
+              <Route
+                element={
+                  <RequireRole allowed={["organizer", "super_admin"]}>
+                    <OrganizerLayout />
+                  </RequireRole>
+                }
+              >
+                <Route path="/organizer" element={<OrganizerOverview />} />
+                <Route path="/organizer/events" element={<OrganizerEvents />} />
+                <Route path="/organizer/events/new" element={<EventEditor />} />
+                <Route path="/organizer/events/:eventId" element={<EventEditor />} />
+                <Route path="/organizer/participants" element={<Participants />} />
+                <Route path="/organizer/checkin" element={<CheckInPage />} />
+                <Route path="/organizer/announcements" element={<Announcements />} />
+                <Route path="/organizer/tasks" element={<Tasks />} />
+                <Route path="/organizer/volunteers" element={<Volunteers />} />
+                <Route path="/organizer/analytics" element={<Analytics />} />
+                <Route path="/organizer/settings" element={<Settings />} />
+              </Route>
+
+              {/* Volunteer area */}
+              <Route
+                element={
+                  <RequireRole allowed={["volunteer"]}>
+                    <VolunteerLayout />
+                  </RequireRole>
+                }
+              >
+                <Route path="/volunteer" element={<VolunteerHome />} />
+                <Route path="/volunteer/checkin" element={<VolunteerCheckIn />} />
+                <Route path="/volunteer/participants" element={<VolunteerParticipants />} />
+                <Route path="/volunteer/announcements" element={<VolunteerAnnouncements />} />
+              </Route>
+
+              {/* Super admin */}
+              <Route
+                path="/admin"
+                element={
+                  <RequireRole allowed={["super_admin"]}>
+                    <Admin />
+                  </RequireRole>
+                }
+              />
+
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>

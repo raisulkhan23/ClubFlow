@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import {
   canManageEvent,
@@ -17,10 +18,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // ── Shared view builders ─────────────────────────────────────────────────────
 
-async function userOf(ctx: QueryCtor, userId: Id<"users">) {
+async function userOf(ctx: QueryCtx, userId: Id<"users">) {
   return await ctx.db.get(userId);
 }
-type QueryCtor = Parameters<Parameters<typeof query>[0]["handler"]>[0];
 
 /** Best display name for a registration: user record, then form answer. */
 function displayName(reg: Doc<"registrations">, user?: Doc<"users"> | null): string {
@@ -348,15 +348,17 @@ export const getMyRegistration = query({
     const cert = reg.certificateId
       ? await ctx.db.query("certificates").withIndex("by_certificateId", (q) => q.eq("certificateId", reg.certificateId!)).first()
       : null;
-    const answersView = event.formFields.map((f) => {
-      const a = reg.answers.find((x) => x.fieldId === f.id);
-      return {
-        label: f.label,
-        type: f.type,
-        value: a?.value ?? null,
-        fileUrl: f.type === "file" && typeof a?.value === "string" ? (await ctx.storage.getUrl(a.value as Id<"_storage">)) ?? undefined : undefined,
-      };
-    });
+    const answersView = await Promise.all(
+      event.formFields.map(async (f) => {
+        const a = reg.answers.find((x) => x.fieldId === f.id);
+        return {
+          label: f.label,
+          type: f.type,
+          value: a?.value ?? null,
+          fileUrl: f.type === "file" && typeof a?.value === "string" ? (await ctx.storage.getUrl(a.value as Id<"_storage">)) ?? undefined : undefined,
+        };
+      }),
+    );
     return {
       registration: {
         _id: reg._id,

@@ -193,6 +193,7 @@ export const globalSearch = query({
       .map((e) => ({ _id: e._id, title: e.title, status: e.status }));
 
     const regHits: Array<{ _id: Id<"registrations">; registrationId: string; participantName: string; eventTitle: string }> = [];
+    const eventIds = new Set(events.map((e) => e._id));
     if (term.startsWith("clf") || term.length >= 4) {
       const regs = (await ctx.db.query("registrations").take(1500)).filter((r) => eventIds.has(r.eventId));
       for (const r of regs) {

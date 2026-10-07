@@ -82,7 +82,8 @@ export const listOrganizers = query({
   args: {},
   handler: async (ctx) => {
     await requireRole(ctx, ROLES.SUPER_ADMIN);
-    const users = await ctx.db.query("users").withIndex("by_club", (q) => q.isDefined("clubId")).collect();
+    const allUsers = await ctx.db.query("users").collect();
+    const users = allUsers.filter((u) => u.clubId !== undefined).slice(0, 500);
     const clubs = new Map<string, string>();
     return await Promise.all(
       users.map(async (u) => {

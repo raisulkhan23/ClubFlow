@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
 import { canWorkEvent, logActivity, requireRole, requireViewer } from "./helpers";
 import { ROLES } from "./schema";
 
@@ -14,8 +15,8 @@ const volunteerRole = v.union(
 export const list = query({
   args: {},
   handler: async (ctx) => {
-    const viewer = await requireRole(ctx, ROLES.ORGANIZER, ROLES.SUPER_ADMIN);
-    let rows;
+    const viewer =    await requireRole(ctx, ROLES.ORGANIZER, ROLES.SUPER_ADMIN);
+    let rows: Doc<"volunteers">[];
     if (viewer.user.role === ROLES.SUPER_ADMIN) {
       rows = await ctx.db.query("volunteers").take(200);
     } else if (viewer.user.clubId) {
@@ -25,10 +26,10 @@ export const list = query({
     }
     const events = new Map<string, string>();
     const out = [];
-    for (const v of rows) {
-      const user = await ctx.db.get(v.userId);
+    for (const vol of rows) {
+      const user = await ctx.db.get(vol.userId);
       const eventTitles: string[] = [];
-      for (const eid of v.eventIds) {
+      for (const eid of vol.eventIds) {
         let t = events.get(eid);
         if (!t) {
           t = (await ctx.db.get(eid))?.title ?? "";
@@ -37,14 +38,14 @@ export const list = query({
         if (t) eventTitles.push(t);
       }
       out.push({
-        _id: v._id,
-        name: user?.name ?? v.name,
+        _id: vol._id,
+        name: user?.name ?? vol.name,
         email: user?.email ?? "",
-        role: v.role,
-        status: v.status,
-        eventIds: v.eventIds,
+        role: vol.role,
+        status: vol.status,
+        eventIds: vol.eventIds,
         eventTitles,
-        createdAt: v.createdAt,
+        createdAt: vol.createdAt,
       });
     }
     out.sort((a, b) => a.name.localeCompare(b.name));

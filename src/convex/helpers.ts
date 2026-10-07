@@ -119,7 +119,8 @@ async function bumpCounter(ctx: MutationCtx, key: string): Promise<number> {
     await ctx.db.patch(existing._id, { value });
     return value;
   }
-  return await ctx.db.insert("counters", { key, value: 1 });
+  await ctx.db.insert("counters", { key, value: 1 });
+  return 1;
 }
 
 /** Sequential registration id, e.g. CLF-2026-000421 */
