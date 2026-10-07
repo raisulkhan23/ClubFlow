@@ -122,7 +122,9 @@ export default function EventEditor() {
     isNew
       ? { api: { events: { getForOrganizer: null } } } as never
       : api.events.getForOrganizer,
-    isNew ? {} : { eventId: eventId! as Id<"events"> },
+    isNew
+      ? "skip"
+      : { eventId: eventId! as Id<"events"> },
   );
   const eventData = (event as { event?: { title?: string; status?: string; updatedAt?: number; formFields?: FormField[] } } | null | undefined) ?? null;
 
@@ -703,7 +705,7 @@ export default function EventEditor() {
                           <Label htmlFor={`${f.id}-type`}>Type</Label>
                           <FieldTypeSelect
                             value={f.type}
-                            onChange={(v) => updateField(i, { ...f, type: v })
+                            onChange={(v) => updateField(i, { ...f, type: v as FormField["type"] })}
                           />
                         </div>
                       </div>
@@ -711,7 +713,8 @@ export default function EventEditor() {
                         <Label htmlFor={`${f.id}-desc`}>Description (optional)</Label>
                         <Input
                           id={`${f.id}-desc`}
-                          value={f.description ?? ""}                            onChange={(e) =>
+                          value={f.description ?? ""}
+                          onChange={(e) =>
                             updateField(i, { ...f, description: e.target.value || undefined })
                           }
                           placeholder="Help text shown below the field"
@@ -788,7 +791,8 @@ export default function EventEditor() {
               </CardDescription>
             )}
           </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">                  {isNew ?
+          <CardContent className="flex flex-wrap gap-3">
+                  {isNew ?
               (
                 <Button
                   className="flex-1"

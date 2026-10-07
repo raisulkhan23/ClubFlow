@@ -12,17 +12,22 @@ import { fmtDate } from "@/lib/format";
 import { QrScannerPanel } from "@/components/QrScannerPanel";
 import type { Id } from "@/convex/_generated/dataModel";
 
-const INITIAL_SCAN = {
+const INITIAL_SCAN: {
+  found: false;
+  name: "";
+  status: "confirmed";
+  checkedInAt: null;
+} = {
   found: false,
   name: "",
-  status: "confirmed" as "confirmed",
-  checkedInAt: null as number | null,
-} as const;
+  status: "confirmed",
+  checkedInAt: null,
+};
 
 export default function CheckInPage() {
   const [mode, setMode] = useState<"scan" | "search">("scan");
   const [manualName, setManualName] = useState("");
-  const [scanResult, setScanResult] = useState(INITIAL_SCAN);
+  const [scanResult, setScanResult] = useState<typeof INITIAL_SCAN | { found: boolean; name: string; status: string; checkedInAt: number | null }>(INITIAL_SCAN);
   const [justCheckedIn, setJustCheckedIn] = useState(false);
   const scannedRef = useRef<Set<string>>(new Set());
   const [lastManual, setLastManual] = useState<string | null>(null);
@@ -51,6 +56,10 @@ export default function CheckInPage() {
     }
   }, [events]);
 
+  function makeScanResult(found: boolean, name: string, status: string, checkedInAt: number | null) {
+    return { found, name, status, checkedInAt };
+  }
+
   const handleScan = useCallback(
     (text: string) => {
       setScanResult(INITIAL_SCAN);
@@ -64,19 +73,19 @@ export default function CheckInPage() {
       });
 
       if (!match) {
-        setScanResult({ found: false, name: cleaned, status: "rejected", checkedInAt: null });
+        setScanResult(makeScanResult(false, cleaned, "rejected", null));
         setTimeout(() => setScanResult(INITIAL_SCAN), 3000);
         return;
       }
 
-      setScanResult({
-        found: true,
-        name: match.participantName,
-        status: match.checkedInAt != null
-          ? ("checked_in" as const)
-          : (match.status as "confirmed" | "pending" | "cancelled" | "rejected"),
-        checkedInAt: match.checkedInAt ? Number(match.checkedInAt) : null,
-      });
+      setScanResult(makeScanResult(
+        true,
+        match.participantName,
+        match.checkedInAt != null
+          ? "checked_in"
+          : match.status,
+        match.checkedInAt ? Number(match.checkedInAt) : null,
+      ));
 
       if (match.checkedInAt != null) {
         setTimeout(() => setScanResult(INITIAL_SCAN), 3000);
@@ -112,18 +121,18 @@ export default function CheckInPage() {
       return hay.includes(key);
     });
     if (!match) {
-      setScanResult({ found: false, name: manualName, status: "rejected", checkedInAt: null });
+      setScanResult(makeScanResult(false, manualName, "rejected", null));
       setTimeout(() => setScanResult(INITIAL_SCAN), 3000);
       return;
     }
-    setScanResult({
-      found: true,
-      name: match.participantName,
-      status: match.checkedInAt != null
-        ? ("checked_in" as const)
-        : (match.status as "confirmed" | "pending" | "cancelled" | "rejected"),
-      checkedInAt: match.checkedInAt ? Number(match.checkedInAt) : null,
-    });
+    setScanResult(makeScanResult(
+      true,
+      match.participantName,
+      match.checkedInAt != null
+        ? "checked_in"
+        : match.status,
+      match.checkedInAt ? Number(match.checkedInAt) : null,
+    ));
     if (match.checkedInAt != null) {
       setTimeout(() => setScanResult(INITIAL_SCAN), 2000);
       return;

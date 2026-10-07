@@ -82,7 +82,7 @@ export default function Participants() {
       filtered = filtered.filter(
         (r) =>
           r.participantName.toLowerCase().includes(s) ||
-          (r.email ?? "").toLowerCase().includes(s) ||
+          (r.participantEmail ?? "").toLowerCase().includes(s) ||
           (r.answers ?? []).some((a) => String(a.value).toLowerCase().includes(s)),
       );
     }
@@ -113,7 +113,7 @@ export default function Participants() {
                   ["Name", "Email", "Status", "Event", "Registered", "Checked in"].join(","),
                   ...rows.map((r) => [
                     r.participantName,
-                    r.email ?? "",
+                    r.participantEmail ?? "",
                     r.status,
                     r.eventTitle ?? "",
                     r.createdAt ? new Date(r.createdAt).toISOString() : "",
@@ -207,9 +207,9 @@ export default function Participants() {
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-medium">{r.participantName}</span>
-                      {r.email && (
+                      {r.participantEmail && (
                         <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                          {r.email}
+                          {r.participantEmail}
                         </span>
                       )}
                     </div>

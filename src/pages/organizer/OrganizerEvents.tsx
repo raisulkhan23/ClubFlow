@@ -1,4 +1,5 @@
-import { useQuery, useState, useMemo } from "react";
+import { useQuery } from "convex/react";
+import { useState, useMemo } from "react";
 import { api } from "@/convex/_generated/api";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
