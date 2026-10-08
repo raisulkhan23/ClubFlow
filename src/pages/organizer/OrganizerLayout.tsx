@@ -13,6 +13,7 @@ import {
   QrCode,
   ScanLine,
   Settings,
+  Trophy,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ const groups: NavGroup[] = [
     heading: "Event content",
     items: [
       { to: "/organizer/announcements", label: "Announcements", icon: Megaphone },
+      { to: "/organizer/results", label: "Results & awards", icon: Trophy },
       { to: "/organizer/tasks", label: "Tasks", icon: ListTodo },
     ],
   },

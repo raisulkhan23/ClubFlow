@@ -14,21 +14,25 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { toast } from "sonner";
 import {
   ChevronDown,
   ChevronUp,
-  Layout,
   Plus,
   Trash2,
   Save,
   Send,
   Eye,
-  RotateCcw,
   Copy,
+  ScanLine,
+  Users,
+  Megaphone,
+  Trophy,
+  BadgeCheck,
+  BarChart3,
 } from "lucide-react";
+import { Link } from "react-router";
 import {
   Select,
   SelectContent,
@@ -37,13 +41,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { X } from "lucide-react";
-
-interface FormFieldEditorProps {
-  field: FormField;
-  index: number;
-  onUpdate: (i: number, f: FormField) => void;
-  onRemove: (i: number) => void;
-}
 
 function FieldTypeSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const types = ["text", "email", "phone", "number", "textarea", "select", "radio", "checkbox", "multiselect"];
@@ -126,7 +123,26 @@ export default function EventEditor() {
       ? "skip"
       : { eventId: eventId! as Id<"events"> },
   );
-  const eventData = (event as { event?: { title?: string; status?: string; updatedAt?: number; formFields?: FormField[] } } | null | undefined) ?? null;
+  const eventData = (event as {
+    event?: {
+      title?: string;
+      status?: string;
+      updatedAt?: number;
+      formFields?: FormField[];
+      startAt?: number;
+      venue?: string;
+      capacity?: number;
+      confirmedCount?: number;
+    };
+    counts?: {
+      confirmed: number;
+      pending: number;
+      cancelled: number;
+      rejected: number;
+      checkedIn: number;
+      withCertificate: number;
+    };
+  } | null | undefined) ?? null;
 
   const updateFormFields = useMutation(api.events.updateFormFields);
   const createEvent = useMutation(api.events.createEvent);
@@ -134,39 +150,41 @@ export default function EventEditor() {
   const setStatus = useMutation(api.events.setEventStatus);
   const duplicate = useMutation(api.events.duplicateEvent);
 
-  const [formFields, setFormFields] = useState<FormField[]>(
-    (eventData?.event?.formFields ?? []) as FormField[],
-  );
+  // Local edits win over server values; when untouched, the builder renders
+  // the fields loaded from the event itself (state must not clobber them).
+  const [localFormFields, setLocalFormFields] = useState<FormField[] | null>(null);
+  const serverFormFields = (eventData?.event?.formFields ?? []) as FormField[];
+  const formFields = localFormFields ?? serverFormFields;
 
-  const removeField = useCallback((i: number) => {
-    setFormFields((prev) => prev.filter((_, idx) => idx !== i));
-  }, []);
-  const updateField = useCallback((i: number, f: FormField) => {
-    setFormFields((prev) => prev.map((prevField, idx) => (idx === i ? f : prevField)));
-  }, []);
-  const updateOptions = useCallback((i: number, opts: string[]) => {
-    setFormFields((prev) => prev.map((f, idx) => (idx === i ? { ...f, options: opts } : f)));
-  }, []);
-  const addOption = useCallback((i: number) => {
-    setFormFields((prev) =>
-      prev.map((f, idx) => (idx === i ? { ...f, options: [...(f.options ?? []), ""] } : f)),
+  const removeField = (i: number) => {
+    setLocalFormFields(formFields.filter((_, idx) => idx !== i));
+  };
+  const updateField = (i: number, f: FormField) => {
+    setLocalFormFields(formFields.map((x, idx) => (idx === i ? f : x)));
+  };
+  const updateOptions = (i: number, opts: string[]) => {
+    setLocalFormFields(formFields.map((x, idx) => (idx === i ? { ...x, options: opts } : x)));
+  };
+  const addOption = (i: number) => {
+    setLocalFormFields(
+      formFields.map((x, idx) => (idx === i ? { ...x, options: [...(x.options ?? []), ""] } : x)),
     );
-  }, []);
-  const removeOption = useCallback((i: number, idx: number) => {
-    setFormFields((prev) =>
-      prev.map((f, fieldIdx) =>
-        fieldIdx === i ? { ...f, options: f.options?.filter((_, oi) => oi !== idx) ?? [] } : f,
+  };
+  const removeOption = (i: number, optIdx: number) => {
+    setLocalFormFields(
+      formFields.map((x, fieldIdx) =>
+        fieldIdx === i ? { ...x, options: x.options?.filter((_, oi) => oi !== optIdx) ?? [] } : x,
       ),
     );
-  }, []);
+  };
 
-  const addField = useCallback(() => {
+  const addField = () => {
     const id = `f_${Date.now()}`;
-    setFormFields((prev) => [
-      ...prev,
+    setLocalFormFields([
+      ...formFields,
       { id, type: "text", label: "New field", description: "", required: false },
     ]);
-  }, []);
+  };
 
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
@@ -177,16 +195,24 @@ export default function EventEditor() {
     setSaving(true);
     try {
       if (isNew) {
-        const { eventId } = await createEvent({ input });
-        window.location.href = `/organizer/events/${eventId}`;
+        const { eventId: newId } = await createEvent({ input });
+        if (formFields.length > 0) {
+          await updateFormFields({ eventId: newId as Id<"events">, fields: formFields });
+        }
+        window.location.href = `/organizer/events/${newId}`;
         return;
       }
       await updateEvent({ eventId: eventId! as Id<"events">, input });
+      if (localFormFields !== null) {
+        await updateFormFields({ eventId: eventId! as Id<"events">, fields: formFields });
+      }
       toast.success("Draft saved");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save the event.");
     } finally {
       setSaving(false);
     }
-  }, [isNew, createEvent, updateEvent, eventId]);
+  }, [isNew, createEvent, updateEvent, updateFormFields, formFields, localFormFields, eventId]);
 
   const handlePublish = useCallback(
     async (status: "published" | "registration_closed" | "live") => {
@@ -207,6 +233,23 @@ export default function EventEditor() {
     const { eventId: newId } = await duplicate({ eventId: eventId! as Id<"events"> });
     window.location.href = `/organizer/events/${newId}`;
   }, [duplicate, eventId]);
+
+  function defaultForm(): EventInput {
+    return {
+      title: "",
+      category: "Technology",
+      shortDescription: "",
+      description: "",
+      startAt: Date.now() + 86400000 * 7,
+      endAt: Date.now() + 86400000 * 7 + 7200000,
+      venue: "",
+      capacity: 200,
+      registrationDeadline: Date.now() + 86400000 * 6,
+      teamEvent: false,
+      requiresApproval: false,
+      contactEmail: "",
+    };
+  }
 
   const [form, setForm] = useState<EventInput>(() => {
     if (!eventData?.event) return defaultForm();
@@ -258,23 +301,6 @@ export default function EventEditor() {
     };
   });
 
-  function defaultForm(): EventInput {
-    return {
-      title: "",
-      category: "Technology",
-      shortDescription: "",
-      description: "",
-      startAt: Date.now() + 86400000 * 7,
-      endAt: Date.now() + 86400000 * 7 + 7200000,
-      venue: "",
-      capacity: 200,
-      registrationDeadline: Date.now() + 86400000 * 6,
-      teamEvent: false,
-      requiresApproval: false,
-      contactEmail: "",
-    };
-  }
-
   const coverThemes = [
     { value: 0, label: "Clean white", gradient: "from-slate-50 to-slate-100" },
     { value: 1, label: "Deep navy", gradient: "from-slate-900 to-slate-800" },
@@ -294,6 +320,79 @@ export default function EventEditor() {
             : `${event?.event?.title ?? "Event"} — make your changes.`}
         </p>
       </div>
+
+      {/* Event command center strip */}
+      {!isNew && eventData?.event && (
+        <div className="rounded-xl border bg-card p-4">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Status</p>
+              <Badge variant="secondary" className="capitalize">
+                {(eventData.event.status ?? "draft").replace("_", " ")}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Registered</p>
+              <p className="font-display text-xl font-bold tabular">
+                {eventData.counts?.confirmed ?? 0}
+                <span className="text-sm font-normal text-muted-foreground">
+                  /{eventData.event.capacity ?? "—"}
+                </span>
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Checked in</p>
+              <p className="font-display text-xl font-bold tabular text-primary">
+                {eventData.counts?.checkedIn ?? 0}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Not checked in</p>
+              <p className="font-display text-xl font-bold tabular">
+                {Math.max(0, (eventData.counts?.confirmed ?? 0) - (eventData.counts?.checkedIn ?? 0))}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Pending</p>
+              <p className="font-display text-xl font-bold tabular">
+                {eventData.counts?.pending ?? 0}
+              </p>
+            </div>
+            <div className="ml-auto flex flex-wrap gap-2">
+              <Button asChild size="sm">
+                <Link to="/organizer/checkin">
+                  <ScanLine className="size-3.5" /> Scan QR
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to={`/organizer/participants?eventId=${eventId}`}>
+                  <Users className="size-3.5" /> Participants
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/organizer/announcements">
+                  <Megaphone className="size-3.5" /> Announcements
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to={`/organizer/results?eventId=${eventId}`}>
+                  <Trophy className="size-3.5" /> Results
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to={`/organizer/results?eventId=${eventId}`}>
+                  <BadgeCheck className="size-3.5" /> Certificates
+                </Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link to="/organizer/analytics">
+                  <BarChart3 className="size-3.5" /> Analytics
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Live preview of cover */}
       <div
@@ -801,12 +900,7 @@ export default function EventEditor() {
                       toast.error("Please fill in the title and short description.");
                       return;
                     }
-                    setSaving(true);
-                    createEvent({ input: form as EventInput })
-                      .then(({ eventId }) => {
-                        window.location.href = `/organizer/events/${eventId}`;
-                      })
-                      .finally(() => setSaving(false));
+                    void saveDraft(form);
                   }}
                   disabled={saving}
                 >

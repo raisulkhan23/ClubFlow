@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ParticipantShell } from "./ParticipantShell";
 import { PageHeader, ROLE_LABEL, type AppRole } from "@/components/RequireRole";
@@ -7,22 +7,20 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 export default function Profile() {
   const { user } = useAuth();
   const updateProfile = useMutation(api.accounts.updateProfile);
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  // Local edits win over the loaded profile — no effect needed to sync.
+  const [localName, setLocalName] = useState<string | null>(null);
+  const [localPhone, setLocalPhone] = useState<string | null>(null);
+  const name = localName ?? user?.name ?? "";
+  const phone = localPhone ?? user?.phone ?? "";
+  const setName = setLocalName;
+  const setPhone = setLocalPhone;
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      setName(user.name ?? "");
-      setPhone(user.phone ?? "");
-    }
-  }, [user]);
 
   const save = async () => {
     setSaving(true);

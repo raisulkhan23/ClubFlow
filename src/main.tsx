@@ -33,6 +33,7 @@ const EventEditor = lazy(() => import("./pages/organizer/EventEditor.tsx"));
 const Participants = lazy(() => import("./pages/organizer/Participants.tsx"));
 const CheckInPage = lazy(() => import("./pages/organizer/CheckInPage.tsx"));
 const Announcements = lazy(() => import("./pages/organizer/Announcements.tsx"));
+const Results = lazy(() => import("./pages/organizer/Results.tsx"));
 const Tasks = lazy(() => import("./pages/organizer/Tasks.tsx"));
 const Volunteers = lazy(() => import("./pages/organizer/Volunteers.tsx"));
 const Analytics = lazy(() => import("./pages/organizer/Analytics.tsx"));
@@ -228,6 +229,7 @@ createRoot(document.getElementById("root")!).render(
                 <Route path="/organizer/participants" element={<Participants />} />
                 <Route path="/organizer/checkin" element={<CheckInPage />} />
                 <Route path="/organizer/announcements" element={<Announcements />} />
+                <Route path="/organizer/results" element={<Results />} />
                 <Route path="/organizer/tasks" element={<Tasks />} />
                 <Route path="/organizer/volunteers" element={<Volunteers />} />
                 <Route path="/organizer/analytics" element={<Analytics />} />

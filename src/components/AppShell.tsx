@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ROLE_LABEL, roleHome, type AppRole } from "@/components/RequireRole";
+import { ROLE_LABEL, type AppRole } from "@/components/RequireRole";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router";
@@ -318,7 +318,7 @@ function GlobalSearch() {
 
           <main className="flex-1 px-4 py-6 md:px-6 md:py-8">
             <div className="mx-auto w-full max-w-6xl">
-              <Outlet />
+              {children ?? <Outlet />}
             </div>
           </main>
         </div>

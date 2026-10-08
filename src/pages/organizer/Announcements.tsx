@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
-import { Bell, Plus, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Trash2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,7 +42,7 @@ export default function Announcements() {
 
   const handleCreate = async () => {
     if (!title.trim() || !message.trim() || !activeEvent) return;
-    const { id } = await create({
+    await create({
       eventId: activeEvent._id as Id<"events">,
       title: title.trim(),
       message: message.trim(),

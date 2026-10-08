@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { CheckCircle2, ScanLine, UserSearch } from "lucide-react";
@@ -23,7 +23,7 @@ const INITIAL_SCAN = {
 };
 
 export default function CheckInPage() {
-  const [mode, setMode] = useState<"scan" | "search">("scan");
+  const [modeChoice, setModeChoice] = useState<"scan" | "search">("scan");
   const [manualName, setManualName] = useState("");
   const [scanResult, setScanResult] =
     useState<typeof INITIAL_SCAN | { found: boolean; name: string; status: string; checkedInAt: number | null }>(
@@ -53,98 +53,11 @@ export default function CheckInPage() {
 
   const checkIn = useMutation(api.registrations.checkIn);
 
-  useEffect(() => {
-    if (events && events.length === 0) {
-      setMode("search");
-    }
-  }, [events]);
+  // With no events there is nothing to scan — fall back to search.
+  const mode = events !== undefined && events.length === 0 ? "search" : modeChoice;
 
-  const handleScan = useCallback(
-    (text: string) => {
-      setScanResult(INITIAL_SCAN);
-      const cleaned = text.trim();
-      if (!cleaned) return;
-
-      const match = (registrations ?? []).find((r) =>
-        r.participantName.toLowerCase().includes(cleaned.toLowerCase()),
-      );
-
-      if (!match) {
-        setScanResult({ found: false, name: cleaned, status: "rejected", checkedInAt: null });
-        setTimeout(() => setScanResult(INITIAL_SCAN), 3000);
-        return;
-      }
-
-      setScanResult({
-        found: true,
-        name: match.participantName,
-        status: match.checkedInAt != null ? "checked_in" : match.status,
-        checkedInAt: match.checkedInAt ? Number(match.checkedInAt) : null,
-      });
-
-      if (match.checkedInAt != null) {
-        setTimeout(() => setScanResult(INITIAL_SCAN), 3000);
-        return;
-      }
-
-      if (match.status === "cancelled" || match.status === "rejected" || match.status === "pending") {
-        setTimeout(() => setScanResult(INITIAL_SCAN), 3000);
-        return;
-      }
-
-      if (!scannedRef.current.has(match._id)) {
-        scannedRef.current.add(match._id);
-        setJustCheckedIn(true);
-        setTimeout(() => {
-          setJustCheckedIn(false);
-          setScanResult(INITIAL_SCAN);
-        }, 2500);
-      }
-    },
-    [registrations],
-  );
-
-  const handleManual = useCallback(() => {
-    if (!manualName.trim()) return;
-    const key = manualName.toLowerCase();
-    if (lastManual === key) return;
-    setLastManual(key);
-    setScanResult(INITIAL_SCAN);
-    const match = (registrations ?? []).find((r) =>
-      r.participantName.toLowerCase().includes(key),
-    );
-    if (!match) {
-      setScanResult({ found: false, name: manualName, status: "rejected", checkedInAt: null });
-      setTimeout(() => setScanResult(INITIAL_SCAN), 3000);
-      return;
-    }
-    setScanResult({
-      found: true,
-      name: match.participantName,
-      status: match.checkedInAt != null ? "checked_in" : match.status,
-      checkedInAt: match.checkedInAt ? Number(match.checkedInAt) : null,
-    });
-    if (match.checkedInAt != null) {
-      setTimeout(() => setScanResult(INITIAL_SCAN), 2000);
-      return;
-    }
-    if (match.status === "cancelled" || match.status === "rejected" || match.status === "pending") {
-      setTimeout(() => setScanResult(INITIAL_SCAN), 2000);
-      return;
-    }
-    if (!scannedRef.current.has(match._id)) {
-      scannedRef.current.add(match._id);
-      setJustCheckedIn(true);
-      setTimeout(() => {
-        setJustCheckedIn(false);
-        setScanResult(INITIAL_SCAN);
-      }, 2500);
-    }
-  }, [manualName, registrations, lastManual]);
-
-  const handleServerCheckIn = useCallback(
-    async (code: string) => {
-      if (!activeEvent) return;
+  async function handleServerCheckIn(code: string) {
+    if (!activeEvent) return;
       try {
         const result = await checkIn({
           code: code.trim(),
@@ -181,9 +94,51 @@ export default function CheckInPage() {
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Check-in failed.");
       }
-    },
-    [activeEvent, checkIn],
-  );
+  }
+
+  function handleManual() {
+    if (!manualName.trim()) return;
+    const key = manualName.toLowerCase();
+    if (lastManual === key) return;
+    setLastManual(key);
+    // Registration IDs go straight to the server-verified check-in.
+    if (/^clf/i.test(manualName.trim())) {
+      void handleServerCheckIn(manualName.trim());
+      setManualName("");
+      return;
+    }
+    setScanResult(INITIAL_SCAN);
+    const match = (registrations ?? []).find((r) =>
+      r.participantName.toLowerCase().includes(key),
+    );
+    if (!match) {
+      setScanResult({ found: false, name: manualName, status: "rejected", checkedInAt: null });
+      setTimeout(() => setScanResult(INITIAL_SCAN), 3000);
+      return;
+    }
+    setScanResult({
+      found: true,
+      name: match.participantName,
+      status: match.checkedInAt != null ? "checked_in" : match.status,
+      checkedInAt: match.checkedInAt ? Number(match.checkedInAt) : null,
+    });
+    if (match.checkedInAt != null) {
+      setTimeout(() => setScanResult(INITIAL_SCAN), 2000);
+      return;
+    }
+    if (match.status === "cancelled" || match.status === "rejected" || match.status === "pending") {
+      setTimeout(() => setScanResult(INITIAL_SCAN), 2000);
+      return;
+    }
+    if (!scannedRef.current.has(match._id)) {
+      scannedRef.current.add(match._id);
+      setJustCheckedIn(true);
+      setTimeout(() => {
+        setJustCheckedIn(false);
+        setScanResult(INITIAL_SCAN);
+      }, 2500);
+    }
+  }
 
   return (
     <div className="space-y-6 px-4 py-8">
@@ -205,7 +160,7 @@ export default function CheckInPage() {
                   variant={mode === "scan" ? "default" : "ghost"}
                   size="sm"
                   className="text-xs"
-                  onClick={() => setMode("scan")}
+                  onClick={() => setModeChoice("scan")}
                 >
                   <ScanLine className="mr-1 size-3.5" />
                   Scan
@@ -214,7 +169,7 @@ export default function CheckInPage() {
                   variant={mode === "search" ? "default" : "ghost"}
                   size="sm"
                   className="text-xs"
-                  onClick={() => setMode("search")}
+                  onClick={() => setModeChoice("search")}
                 >
                   <UserSearch className="mr-1 size-3.5" />
                   Search

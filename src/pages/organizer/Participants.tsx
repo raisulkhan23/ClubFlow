@@ -24,11 +24,9 @@ import {
   EmptyTitle,
   EmptyDescription,
   EmptyMedia,
-  EmptyContent,
 } from "@/components/ui/empty";
 import { fmtDate } from "@/lib/format";
 import { useState, useMemo } from "react";
-import type { Id } from "@/convex/_generated/dataModel";
 
 type RegRow = {
   _id: string;

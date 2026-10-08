@@ -1,4 +1,5 @@
 import { useAuth } from "@/hooks/use-auth";
+import { useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
@@ -11,15 +12,14 @@ import {
   Megaphone,
   Plus,
   ScanLine,
+  Trophy,
   UserPlus,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Empty, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty";
 import { fmtDate, fmtDateTime } from "@/lib/format";
-import type { Id } from "@/convex/_generated/dataModel";
 
 const STATUS_LABEL: Record<string, string> = {
   draft: "Draft",
@@ -74,6 +74,8 @@ type Overview = {
 export default function OrganizerOverview() {
   const { user } = useAuth();
   const data = useQuery(api.dashboard.organizerOverview) as Overview | undefined;
+  // Captured once per mount so render stays pure while day math stays accurate.
+  const [now] = useState(() => Date.now());
 
   const firstName = user?.name ? user.name.split(" ")[0] : "organizer";
 
@@ -106,7 +108,7 @@ export default function OrganizerOverview() {
           to: `/organizer/events/${e._id}`,
         });
       }
-      const daysTo = Math.round((e.startAt - Date.now()) / 86_400_000);
+      const daysTo = Math.round((e.startAt - now) / 86_400_000);
       if (daysTo >= 0 && daysTo <= 1 && ["published", "registration_closed"].includes(e.status)) {
         needsAttention.push({
           icon: CalendarDays,
@@ -382,6 +384,9 @@ export default function OrganizerOverview() {
               </Button>
               <Button asChild variant="outline">
                 <a href="/organizer/tasks"><ClipboardList className="mr-2 size-4" />Create task</a>
+              </Button>
+              <Button asChild variant="outline">
+                <a href="/organizer/results"><Trophy className="mr-2 size-4" />Publish results</a>
               </Button>
             </CardContent>
           </Card>

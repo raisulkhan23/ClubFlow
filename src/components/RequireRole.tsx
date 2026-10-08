@@ -27,8 +27,8 @@ export const ROLE_LABEL: Record<AppRole, string> = {
 export function RequireRole({
   children,
   allowed,
-  title = "Sign in to continue",
-  description = "This page is only available to signed-in users.",
+  title,
+  description,
 }: {
   children: ReactNode;
   allowed: AppRole[];
@@ -62,9 +62,11 @@ export function RequireRole({
                 <ShieldAlert className="size-6 text-destructive" />
               </div>
             </div>
-            <CardTitle className="text-xl">No access to this area</CardTitle>
+            <CardTitle className="text-xl">{title ?? "No access to this area"}</CardTitle>
             <CardDescription>
-              This page is for {allowed.map((r) => ROLE_LABEL[r]).join(" / ")} accounts. You're signed in as {ROLE_LABEL[role]}.
+              {description ??
+                `This page is for ${allowed.map((r) => ROLE_LABEL[r]).join(" / ")} accounts.`}{" "}
+              You're signed in as {ROLE_LABEL[role]}.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center text-sm text-muted-foreground">

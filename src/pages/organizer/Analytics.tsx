@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Empty, EmptyTitle, EmptyDescription, EmptyContent } from "@/components/ui/empty";
-import { fmtDate } from "@/lib/format";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
   BarChart3,
@@ -31,8 +30,6 @@ export default function Analytics() {
     api.events.getEventAnalytics,
     selectedEventId ? { eventId: selectedEventId as Id<"events"> } : "skip",
   );
-
-  const selected = events?.find((e) => e._id === selectedEventId);
 
   return (
     <div className="space-y-6 px-4 py-8">
@@ -272,7 +269,6 @@ function BarChart({
 
   const max = Math.max(...data.map((d) => d.count), 1);
   const bars = data.map((d, i) => {
-    const w = (d.count / max) * 100;
     return (
       <div key={i} className="flex items-end gap-0.5" style={{ height }}>
         <div className="flex-1 flex items-end justify-end px-0.5">

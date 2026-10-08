@@ -2,48 +2,56 @@ import { useState } from "react";
 import { useQuery } from "convex/react";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { User, Mail, Phone, Globe, Shield, Bell } from "lucide-react";
+import { User, Globe, Shield, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { fmtDate } from "@/lib/format";
+import { toast } from "sonner";
 
 export default function Settings() {
   const [section, setSection] = useState<"profile" | "notifications" | "visibility">("profile");
 
   const myClub = useQuery(api.clubs.getMyClub);
   const updateMyClub = useMutation(api.clubs.updateMyClub);
+  // Captured once so the footer stays pure across renders.
+  const [now] = useState(() => Date.now());
 
-  const [club, setClub] = useState({
-    name: "",
-    slug: "",
-    contactEmail: "",
-  });
-
+  // Local edits win over server values; untouched inputs show the loaded club.
+  const [localClub, setLocalClub] = useState<{
+    name: string;
+    slug: string;
+    contactEmail: string;
+  } | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
-  const syncFromServer = () => {
-    if (myClub) {
-      setClub({
-        name: myClub.name ?? "",
-        slug: myClub.slug ?? "",
-        contactEmail: myClub.contactEmail ?? "",
-      });
-    }
+  const club = localClub ?? {
+    name: myClub?.name ?? "",
+    slug: myClub?.slug ?? "",
+    contactEmail: myClub?.contactEmail ?? "",
+  };
+
+  const updateClub = (patch: Partial<typeof club>) => {
+    setLocalClub({ ...club, ...patch });
+    setIsDirty(true);
   };
 
   const handleSave = async () => {
-    await updateMyClub({
-      name: club.name,
-      contactEmail: club.contactEmail,
-    });
-    setIsDirty(false);
-    syncFromServer();
+    try {
+      await updateMyClub({
+        name: club.name,
+        contactEmail: club.contactEmail,
+      });
+      setIsDirty(false);
+      setLocalClub(null);
+      toast.success("Club profile saved");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not save changes.");
+    }
   };
 
   return (
@@ -90,7 +98,7 @@ export default function Settings() {
                 <Input
                   id="club-name"
                   value={club.name}
-                  onChange={(e) => { club.name = e.target.value; setIsDirty(true); }}
+                  onChange={(e) => updateClub({ name: e.target.value })}
                   placeholder="DRMC Tech Club"
                 />
               </div>
@@ -99,7 +107,8 @@ export default function Settings() {
                 <Input
                   id="club-slug"
                   value={club.slug}
-                  onChange={(e) => { club.slug = e.target.value; setIsDirty(true); }}
+                  disabled
+                  onChange={(e) => updateClub({ slug: e.target.value })}
                   placeholder="drmc-tech-club"
                   className="font-mono text-sm"
                 />
@@ -113,9 +122,8 @@ export default function Settings() {
               <Label htmlFor="contact-email">Contact email</Label>
               <Input
                 id="contact-email"
-                type="email"
-                value={club.contactEmail}
-                onChange={(e) => { club.contactEmail = e.target.value; setIsDirty(true); }}
+                type="email"                  value={club.contactEmail}
+                  onChange={(e) => updateClub({ contactEmail: e.target.value })}
                 placeholder="events@drmc.org"
               />
             </div>
@@ -208,7 +216,7 @@ export default function Settings() {
 
       <Separator />
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>Last updated {fmtDate(Date.now())}</span>
+        <span>Last updated {fmtDate(now)}</span>
         <span>Organizer portal v1.0</span>
       </div>
     </div>

@@ -8,7 +8,6 @@ import {
   logActivity,
   nextRegistrationId,
   notify,
-  requireEventManage,
   requireViewer,
 } from "./helpers";
 import { ROLES, type FormField } from "./schema";
@@ -35,7 +34,6 @@ function displayName(reg: Doc<"registrations">, user?: Doc<"users"> | null): str
 function validateAnswers(fields: FormField[], answers: Array<{ fieldId: string; value: unknown }>) {
   const byId = new Map(answers.map((a) => [a.fieldId, a.value]));
   const cleaned: Array<{ fieldId: string; value: string | number | boolean | string[] }> = [];
-  const fieldById = new Map(fields.map((f) => [f.id, f]));
 
   for (const field of fields) {
     // Conditional visibility: hidden fields are dropped, never required.

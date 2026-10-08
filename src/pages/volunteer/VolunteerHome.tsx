@@ -5,6 +5,7 @@ import { CalendarDays, CheckCircle2, Clock, Megaphone, ScanLine, Users } from "l
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { Empty, EmptyTitle, EmptyDescription, EmptyMedia } from "@/components/ui/empty";
 import { fmtRelative, fmtDateTime } from "@/lib/format";
 import { motion } from "framer-motion";

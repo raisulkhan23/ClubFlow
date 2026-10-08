@@ -1,5 +1,5 @@
-import { v } from "convex/values";
 import { mutation } from "./_generated/server";
+import type { MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { nextCertificateId, nextRegistrationId } from "./helpers";
 import type { FormField } from "./schema";
@@ -55,7 +55,15 @@ function track(i: number, options: string[]): string {
 
 export const ensureSeeded = mutation({
   args: {},
-  handler: async (ctx) => {
+  handler: async (ctx) => runSeed(ctx),
+});
+
+/**
+ * Idempotent demo-data seed. Safe to call from any mutation — it no-ops once
+ * the `meta.seeded` lock exists. Exposed as a shared helper so demo login can
+ * guarantee the club/events exist before assigning a role.
+ */
+export async function runSeed(ctx: MutationCtx): Promise<{ seeded: boolean }> {
     const lock = await ctx.db
       .query("meta")
       .withIndex("by_key", (q) => q.eq("key", "seeded"))
@@ -361,7 +369,7 @@ export const ensureSeeded = mutation({
     });
 
     // ── Event 6: Cultural Night (draft) ────────────────────────────────────
-    const culturalId = await ctx.db.insert("events", {
+    await ctx.db.insert("events", {
       clubId,
       createdBy: organizerId,
       title: "Cultural Night — Fusion Beats",
@@ -388,6 +396,139 @@ export const ensureSeeded = mutation({
       coverTheme: 5,
       createdAt: now - 2 * D,
       updatedAt: now - 2 * D,
+    });
+
+    // ── Event 7: Quiz Championship (published, individual) ──────────────
+    const quizFields: FormField[] = [
+      { id: "f_name", type: "text", label: "Full name", required: true },
+      { id: "f_email", type: "email", label: "Email", required: true },
+      { id: "f_phone", type: "phone", label: "Phone", required: true },
+      { id: "f_grade", type: "select", label: "Grade / Class", required: true, options: ["Class 6", "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12"] },
+      { id: "f_rounds", type: "radio", label: "Preferred round format", required: false, options: ["Written", "On-stage", "No preference"] },
+    ];
+    const quizId = await ctx.db.insert("events", {
+      clubId,
+      createdBy: organizerId,
+      title: "Quiz Championship",
+      slug: "quiz-championship",
+      category: "Technology",
+      shortDescription: "Six rounds of rapid-fire tech, science and GK quizzing.",
+      description:
+        "An inter-school quiz championship across six rounds — written qualifiers, buzzer rounds and a live on-stage final. Teams of two compete for the rolling ClubFlow quiz shield.",
+      status: "published",
+      startAt: now + 8 * D,
+      endAt: now + 8.3 * D,
+      venue: "Auditorium B, DRMC Campus",
+      capacity: 80,
+      registrationDeadline: now + 5 * D,
+      teamEvent: false,
+      requiresApproval: false,
+      formFields: quizFields,
+      prizes: "Champion ৳8,000 · Runner-up ৳5,000 · Top school trophy",
+      eligibility: "Open to students of class 6–12. Teams of two.",
+      rules: "1. Written qualifiers are individual.\n2. Finals are played in pairs.\n3. No phones during rounds.",
+      contactEmail: "quiz@drmctech.dev",
+      contactPhone: "+880 1700-000003",
+      faq: [{ q: "Can I participate solo?", a: "Yes — you'll be paired with another participant for the final if you qualify." }],
+      schedule: [
+        { id: "s1", title: "Registration desk opens", time: "1:00 PM" },
+        { id: "s2", title: "Written qualifiers", time: "1:30 PM" },
+        { id: "s3", title: "Buzzer rounds", time: "3:00 PM" },
+        { id: "s4", title: "Grand final", time: "4:30 PM" },
+      ],
+      coverTheme: 2,
+      publishedAt: now - 6 * D,
+      createdAt: now - 9 * D,
+      updatedAt: now - 6 * D,
+    });
+
+    // ── Event 8: Gaming Tournament (published, team 2–4) ─────────────────
+    const gamingFields: FormField[] = [
+      { id: "f_team", type: "text", label: "Team name", required: true },
+      { id: "f_captain_email", type: "email", label: "Captain email", required: true },
+      { id: "f_phone", type: "phone", label: "Captain phone", required: true },
+      { id: "f_game", type: "select", label: "Game", required: true, options: ["Valorant", "FIFA 26", "Chess", "Mobile Legends"] },
+      { id: "f_rank", type: "text", label: "Team rank / rating", required: false },
+    ];
+    const gamingId = await ctx.db.insert("events", {
+      clubId,
+      createdBy: organizerId,
+      title: "Gaming Tournament",
+      slug: "gaming-tournament",
+      category: "Gaming",
+      shortDescription: "Bracket-style esports showdown across four titles.",
+      description:
+        "Single-elimination brackets across Valorant, FIFA, Chess and Mobile Legends. LAN stations, referees and a live spectator stream for the finals.",
+      status: "published",
+      startAt: now + 5 * D,
+      endAt: now + 5.4 * D,
+      venue: "Game Lounge, Block A",
+      capacity: 64,
+      registrationDeadline: now + 3 * D,
+      teamEvent: true,
+      minTeamSize: 2,
+      maxTeamSize: 4,
+      requiresApproval: false,
+      formFields: gamingFields,
+      prizes: "Per-title champion ৳6,000 · MVP award ৳2,000",
+      eligibility: "Open to all students. One team per title per participant.",
+      rules: "1. No emulators or third-party cheats.\n2. Referee decisions are final.\n3. Be at your station 15 minutes before your match.",
+      contactEmail: "gaming@drmctech.dev",
+      faq: [{ q: "Do we bring our own peripherals?", a: "Mice, keyboards and headsets are allowed; consoles and monitors are provided." }],
+      schedule: [
+        { id: "s1", title: "Check-in & seeding", time: "10:00 AM" },
+        { id: "s2", title: "Group stage", time: "11:00 AM – 1:00 PM" },
+        { id: "s3", title: "Playoffs", time: "1:30 PM – 3:30 PM" },
+        { id: "s4", title: "Finals & prize giving", time: "4:00 PM" },
+      ],
+      coverTheme: 3,
+      publishedAt: now - 4 * D,
+      createdAt: now - 7 * D,
+      updatedAt: now - 4 * D,
+    });
+
+    // ── Event 9: Photography Challenge (registration_closed, individual) ─
+    const photoFields: FormField[] = [
+      { id: "f_name", type: "text", label: "Full name", required: true },
+      { id: "f_email", type: "email", label: "Email", required: true },
+      { id: "f_phone", type: "phone", label: "Phone", required: true },
+      { id: "f_theme", type: "select", label: "Preferred theme", required: true, options: ["Street", "Portrait", "Nature", "Architecture"] },
+      { id: "f_gear", type: "text", label: "Camera / phone used", required: false },
+      { id: "f_link", type: "text", label: "Portfolio link", required: false },
+    ];
+    const photoId = await ctx.db.insert("events", {
+      clubId,
+      createdBy: organizerId,
+      title: "Photography Challenge",
+      slug: "photography-challenge",
+      category: "Design",
+      shortDescription: "48 hours, one theme, three photos — judged live on the wall.",
+      description:
+        "A 48-hour photography sprint. Participants shoot against a released theme, submit three frames, and prints go up on the carnival gallery wall for public voting and jury judging.",
+      status: "registration_closed",
+      startAt: now + 2 * D,
+      endAt: now + 4 * D,
+      venue: "Art Block, Ground Floor",
+      capacity: 50,
+      registrationDeadline: now - 1 * D,
+      teamEvent: false,
+      requiresApproval: false,
+      formFields: photoFields,
+      prizes: "Best Shot ৳7,000 · People's Choice ৳3,000",
+      eligibility: "Open to all students. Any camera, including phones.",
+      rules: "1. Photos must be shot during the challenge window.\n2. Minimal editing — crops and exposure only.\n3. One submission set per participant.",
+      contactEmail: "photo@drmctech.dev",
+      faq: [{ q: "Can I submit phone photos?", a: "Yes — phones are explicitly welcome." }],
+      schedule: [
+        { id: "s1", title: "Theme reveal", time: "Day 1 · 9:00 AM" },
+        { id: "s2", title: "Shoot window", time: "Day 1 – Day 3" },
+        { id: "s3", title: "Submission deadline", time: "Day 3 · 6:00 PM" },
+        { id: "s4", title: "Gallery wall & judging", time: "Day 4 · 12:00 PM" },
+      ],
+      coverTheme: 4,
+      publishedAt: now - 10 * D,
+      createdAt: now - 14 * D,
+      updatedAt: now - 1 * D,
     });
 
     // ── Registrations ──────────────────────────────────────────────────────
@@ -518,6 +659,74 @@ export const ensureSeeded = mutation({
       });
     }
 
+    // Quiz Championship: 34 confirmed + 3 pending
+    const quizGrades = ["Class 6", "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12"];
+    for (let i = 0; i < 37; i++) {
+      const status = i < 34 ? "confirmed" : "pending";
+      await addReg({
+        eventId: quizId,
+        userId: userIds[(i + 5) % userIds.length],
+        status,
+        type: "individual",
+        answers: ans({
+          f_name: PARTICIPANTS[(i + 5) % userIds.length][0],
+          f_email: PARTICIPANTS[(i + 5) % userIds.length][1],
+          f_phone: `+88017${String(60000000 + i * 431).slice(0, 8)}`,
+          f_grade: quizGrades[i % quizGrades.length],
+          f_rounds: i % 3 === 0 ? "Written" : i % 3 === 1 ? "On-stage" : "No preference",
+        }),
+        createdAt: now - (6 - (i % 6)) * D - (i % 10) * H,
+      });
+    }
+
+    // Gaming Tournament: 28 teams, 16 checked in
+    const gameTitles = ["Valorant", "FIFA 26", "Chess", "Mobile Legends"];
+    for (let i = 0; i < 28; i++) {
+      const teamName = `${["Neon", "Storm", "Shadow", "Blitz", "Apex", "Frost"][i % 6]} ${["Vipers", "Riders", "Wolves", "Foxes", "Titans"][i % 5]} ${i + 1}`;
+      const extra = 1 + (i % 3);
+      const teamMembers = Array.from({ length: extra }, (_, m) => ({
+        name: PARTICIPANTS[(i + 2 + m) % userIds.length][0],
+        email: PARTICIPANTS[(i + 2 + m) % userIds.length][1],
+      }));
+      await addReg({
+        eventId: gamingId,
+        userId: userIds[(i + 2) % userIds.length],
+        status: "confirmed",
+        type: "team",
+        teamName,
+        teamMembers,
+        answers: ans({
+          f_team: teamName,
+          f_captain_email: PARTICIPANTS[(i + 2) % userIds.length][1],
+          f_phone: `+88018${String(70000000 + i * 617).slice(0, 8)}`,
+          f_game: gameTitles[i % gameTitles.length],
+          f_rank: i % 2 === 0 ? `#${2000 + i * 37}` : "",
+        }),
+        createdAt: now - (5 - (i % 5)) * D,
+        checkedInAt: i < 16 ? now - 30 * H + i * 45 * 60_000 : undefined,
+      });
+    }
+
+    // Photography Challenge: 30 confirmed, registration closed
+    const photoThemes = ["Street", "Portrait", "Nature", "Architecture"];
+    for (let i = 0; i < 30; i++) {
+      await addReg({
+        eventId: photoId,
+        userId: userIds[(i + 11) % userIds.length],
+        status: "confirmed",
+        type: "individual",
+        answers: ans({
+          f_name: PARTICIPANTS[(i + 11) % userIds.length][0],
+          f_email: PARTICIPANTS[(i + 11) % userIds.length][1],
+          f_phone: `+88019${String(80000000 + i * 523).slice(0, 8)}`,
+          f_theme: photoThemes[i % photoThemes.length],
+          f_gear: i % 2 === 0 ? "iPhone 15" : "Canon EOS 250D",
+          ...(i % 3 === 0 ? { f_link: `https://behance.net/drmcphoto${i}` } : {}),
+        }),
+        createdAt: now - (7 - (i % 7)) * D,
+      });
+    }
+
     // ── Volunteers ─────────────────────────────────────────────────────────
     for (let i = 0; i < volunteerUserIds.length; i++) {
       await ctx.db.insert("volunteers", {
@@ -640,9 +849,6 @@ export const ensureSeeded = mutation({
       `Best First-Year Performer — Programming Contest`,
     ];
     const certUserNames = new Map<Id<"users">, string>();
-    for (const [name] of PARTICIPANTS) {
-      // names map by index of userIds
-    }
     userIds.forEach((id, idx) => certUserNames.set(id, PARTICIPANTS[idx][0]));
     for (let i = 0; i < pcRegs.length; i++) {
       const reg = pcRegs[i];
@@ -708,6 +914,5 @@ export const ensureSeeded = mutation({
       });
     }
 
-    return { seeded: true };
-  },
-});
+  return { seeded: true };
+}

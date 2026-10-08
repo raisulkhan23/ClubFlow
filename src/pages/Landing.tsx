@@ -1,4 +1,5 @@
-import { useQuery } from "convex/react";
+import { useEffect } from "react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Logo } from "@/components/Logo";
 import { CoverArt, StatusBadge } from "@/components/RequireRole";
@@ -72,6 +73,14 @@ const COMPARE = [
 ];
 
 export default function Landing() {
+  // Make sure demo data exists before anyone browses (idempotent server-side).
+  const ensureSeeded = useMutation(api.seed.ensureSeeded);
+  useEffect(() => {
+    void ensureSeeded({}).catch(() => {
+      /* seeding is best-effort; the page still renders */
+    });
+  }, [ensureSeeded]);
+
   const stats = useQuery(api.events.publicStats);
   const events = useQuery(api.events.listPublic, { sort: "upcoming", limit: 3 });
   const { isAuthenticated, user } = useAuth();

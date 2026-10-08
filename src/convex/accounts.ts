@@ -2,6 +2,7 @@ import { ConvexError, v } from "convex/values";
 import { mutation } from "./_generated/server";
 import { requireViewer, roleOf } from "./helpers";
 import { roleValidator, ROLES } from "./schema";
+import { runSeed } from "./seed";
 
 const DEMO_NAMES: Record<string, string> = {
   [ROLES.SUPER_ADMIN]: "Platform Admin",
@@ -18,6 +19,8 @@ export const claimDemoRole = mutation({
   args: { role: roleValidator },
   handler: async (ctx, { role }) => {
     const viewer = await requireViewer(ctx);
+    // Demo environments must never look empty: guarantee seed data first.
+    await runSeed(ctx);
     if (!viewer.user.isAnonymous) {
       throw new ConvexError("Demo roles are only available for demo sessions.");
     }

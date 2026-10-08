@@ -120,8 +120,11 @@ export function QrScannerPanel({
           setScanning(false);
         });
     } catch {
-      setCamError("Camera could not be started here. Use the manual check-in below.");
-      setScanning(false);
+      // Defer state updates out of the synchronous effect body.
+      queueMicrotask(() => {
+        setCamError("Camera could not be started here. Use the manual check-in below.");
+        setScanning(false);
+      });
     }
     return () => {
       scanner?.stop();

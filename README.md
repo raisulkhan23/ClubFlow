@@ -291,3 +291,80 @@ When using convex, make sure:
 - This includes importing generated files like `@/convex/_generated/server`, `@/convex/_generated/api`
 - Remember to import functions like useQuery, useMutation, useAction, etc. from `convex/react`
 - NEVER have return type validators.
+
+# ClubFlow — Project Submission
+
+## Overview
+
+**ClubFlow — Your entire fest. One smart platform.** A Smart Club Operations platform that replaces Google Forms + Sheets + WhatsApp + manual attendance + manual results + manual certificates with one connected workflow:
+
+**Event → Registration → QR Ticket → Check-in → Live Attendance → Results → Certificate → Verification**
+
+## Problem statement
+
+School/college clubs run fests with a fragmented stack: a Google Form per event, a spreadsheet nobody trusts, WhatsApp broadcasts, paper attendance sheets, manually assembled certificates, and no post-event insight. Mistakes are invisible until a participant is turned away at the door.
+
+## Solution
+
+ClubFlow is an operations system for clubs: organizers build events with custom registration forms, participants register and receive unique QR tickets, volunteers scan those tickets at the door (server-verified, duplicate-safe), attendance updates live on every dashboard, results are published to the public event page, certificates are issued with verifiable unique IDs, and analytics are computed from real records.
+
+## Tech stack
+
+- **Frontend:** Vite, React 19, TypeScript, Tailwind CSS v4, shadcn/ui, Framer Motion, Recharts, react-router v7
+- **Backend/Database:** Convex (reactive queries, transactions, storage)
+- **Auth:** Convex Auth (email OTP + anonymous demo sessions)
+- **QR:** `qrcode` (ticket generation), `qr-scanner` (camera check-in)
+- **PDF:** jsPDF (certificate download)
+
+## Architecture
+
+```
+src/pages        routes (public, /organizer, /volunteer, /dashboard, /admin)
+src/components   shared UI (AppShell, QrScannerPanel, DynamicFormFields, ui/*)
+src/convex       backend: schema, queries/mutations, RBAC helpers, seed
+src/lib          formatting, CSV, certificate PDF, event-state derivations
+```
+
+Authorization is enforced **server-side** on every query/mutation via `requireRole`, `requireEventManage` and `canWorkEvent` in `src/convex/helpers.ts` — hiding UI is never the only guard.
+
+## Database schema
+
+Tables: `users`, `clubs`, `events`, `registrations`, `announcements`, `notifications`, `tasks`, `volunteers`, `results`, `certificates`, `activity`, `counters`, `meta` (+ Convex Auth tables). See `src/convex/schema.ts`.
+
+## Demo access (for judges)
+
+Go to `/auth` and use the one-click demo buttons (no signup needed):
+
+| Demo | Lands in | Can do |
+|---|---|---|
+| **Organizer Demo** | `/organizer` command center | Full event lifecycle, forms, check-in, announcements, results, certificates, analytics |
+| **Volunteer Demo** | `/volunteer` | QR check-in and participant lookup for assigned events only |
+| **Participant Demo** | `/dashboard` | Register, QR tickets, announcements, results, certificates |
+| **Super Admin Demo** | `/admin` | Platform-wide clubs/users/events overview |
+
+Demo data is seeded automatically (DRMC Tech Club + 9 events + registrations/attendance/results/certificates) — the first visitor triggers `seed.ensureSeeded`, and demo login re-checks it. Every dashboard statistic is derived from real database records.
+
+## Seed / reset
+
+- Seed is idempotent and guarded by a `meta.seeded` lock — re-running never duplicates data.
+- Seed entry points: `src/convex/seed.ts` (`ensureSeeded` mutation, `runSeed` helper).
+
+## Testing
+
+- `bunx convex dev --once` — compiles and pushes all backend functions (must exit 0)
+- `bunx tsc -b --noEmit` — full project typecheck (must exit 0)
+- The repository ships without a unit-test suite; verification is typecheck + Convex compile + manual end-to-end demo flow.
+
+## Known limitations
+
+- Offline check-in queueing is not implemented; a manual registration-ID search fallback is provided instead (no fake offline mode).
+- Email/push sending is not configured — announcements use reliable in-app notifications only.
+- CSV import is not implemented (CSV **export** works on the Participants page).
+
+## AI-tool disclosure
+
+This project was built with AI assistance (Codebuff/LLM pair-programming) and then manually reviewed, typechecked and verified end-to-end.
+
+## License
+
+MIT

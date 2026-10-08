@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarDays, Clock, MapPin, Megaphone, Trophy, Users } from "lucide-react";
 import { Link, useParams } from "react-router";
+import { useState } from "react";
 import { countdown, fmtDate, fmtDateTime } from "@/lib/format";
 
 const MEDALS = ["🥇", "🥈", "🥉"];
@@ -13,6 +14,8 @@ const MEDALS = ["🥇", "🥈", "🥉"];
 export default function EventDetails() {
   const { slug } = useParams<{ slug: string }>();
   const data = useQuery(api.events.getPublicBySlug, slug ? { slug } : "skip");
+  // Captured once per mount so render stays pure.
+  const [now] = useState(() => Date.now());
 
   if (data === undefined) {
     return (
@@ -44,9 +47,8 @@ export default function EventDetails() {
   }
 
   const { event, club, publishedResults, announcements } = data;
-  const seatsLeft = Math.max(0, event.capacity - event.confirmedCount);
   const fillPct = Math.min(100, Math.round((event.confirmedCount / event.capacity) * 100));
-  const isOver = event.endAt < Date.now();
+  const isOver = event.endAt < now;
 
   const cta =
     event.state === "open" || event.state === "almost_full" ? (

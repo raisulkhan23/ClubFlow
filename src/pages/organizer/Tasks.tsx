@@ -21,6 +21,8 @@ const TABS = [
 ] as const;
 
 export default function Tasks() {
+  // Captured once per mount so render stays pure while overdue checks stay accurate.
+  const [now] = useState(() => Date.now());
   const [activeTab, setActiveTab] = useState<string>("todo");
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -71,7 +73,7 @@ export default function Tasks() {
 
   const overdue =
     (tasks ?? [])
-      .filter((t) => t.status !== "done" && t.deadline && t.deadline < Date.now())
+      .filter((t) => t.status !== "done" && t.deadline && t.deadline < now)
       .length;
 
   return (
@@ -224,7 +226,7 @@ export default function Tasks() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <Badge className={tabColor}>{task.status}</Badge>
-                          {task.deadline && task.status !== "done" && task.deadline < Date.now() && (
+                          {task.deadline && task.status !== "done" && task.deadline < now && (
                             <Badge variant="destructive" className="font-normal text-xs">
                               <Clock className="mr-1 size-3" />
                               Overdue
