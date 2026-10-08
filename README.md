@@ -342,7 +342,7 @@ Go to `/auth` and use the one-click demo buttons (no signup needed):
 | **Participant Demo** | `/dashboard` | Register, QR tickets, announcements, results, certificates |
 | **Super Admin Demo** | `/admin` | Platform-wide clubs/users/events overview |
 
-Demo data is seeded automatically (DRMC Tech Club + 9 events + registrations/attendance/results/certificates) — the first visitor triggers `seed.ensureSeeded`, and demo login re-checks it. Every dashboard statistic is derived from real database records.
+Demo data is seeded automatically (DRMC IT CLUB + 9 events + registrations/attendance/results/certificates) — the first visitor triggers `seed.ensureSeeded`, and demo login re-checks it. Every dashboard statistic is derived from real database records.
 
 ## Seed / reset
 
