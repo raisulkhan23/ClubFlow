@@ -1,0 +1,354 @@
+import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Loader2, Lock, ShieldAlert } from "lucide-react";
+import type { ReactNode } from "react";
+import { Link, Navigate, useLocation } from "react-router";
+import { cn } from "@/lib/utils";
+import { COVER_THEMES } from "@/lib/event-state";
+
+export type AppRole = "super_admin" | "organizer" | "volunteer" | "participant";
+
+export const ROLE_LABEL: Record<AppRole, string> = {
+  super_admin: "Super Admin",
+  organizer: "Organizer",
+  volunteer: "Volunteer",
+  participant: "Participant",
+};
+
+/** Auth + role guard for protected routes. */
+export function RequireRole({
+  children,
+  allowed,
+  title,
+  description,
+}: {
+  children: ReactNode;
+  allowed: AppRole[];
+  title?: string;
+  description?: string;
+}) {
+  const { isLoading, isAuthenticated, user } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="size-6 animate-spin text-muted-foreground" />
+      </main>
+    );
+  }
+
+  if (!isAuthenticated) {
+    const returnTo = `${location.pathname}${location.search}`;
+    return <Navigate to={`/auth?returnTo=${encodeURIComponent(returnTo)}`} replace />;
+  }
+
+  const role = (user?.role ?? "participant") as AppRole;
+  if (allowed.length > 0 && !allowed.includes(role)) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background p-6">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="mb-3 flex justify-center">
+              <div className="flex size-12 items-center justify-center rounded-full bg-destructive/15">
+                <ShieldAlert className="size-6 text-destructive" />
+              </div>
+            </div>
+            <CardTitle className="text-xl">{title ?? "No access to this area"}</CardTitle>
+            <CardDescription>
+              {description ??
+                `This page is for ${allowed.map((r) => ROLE_LABEL[r]).join(" / ")} accounts.`}{" "}
+              You're signed in as {ROLE_LABEL[role]}.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="text-center text-sm text-muted-foreground">
+            Head to your own workspace — everything there is tuned to your role.
+          </CardContent>
+          <CardFooter className="flex flex-col gap-2">
+            <Button asChild className="w-full">
+              <Link to={roleHome(role)}>Go to my workspace</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+      </main>
+    );
+  }
+
+  return children;
+}
+
+export function roleHome(role: AppRole | undefined): string {
+  switch (role) {
+    case "super_admin":
+      return "/admin";
+    case "organizer":
+      return "/organizer";
+    case "volunteer":
+      return "/volunteer";
+    default:
+      return "/dashboard";
+  }
+}
+
+/** Redirect component used at /dashboard — sends staff roles to their workspaces. */
+export function WorkspaceEntry({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const role = (user?.role ?? "participant") as AppRole;
+  if (role === "organizer" || role === "super_admin") return <Navigate to="/organizer" replace />;
+  if (role === "volunteer") return <Navigate to="/volunteer" replace />;
+  return children;
+}
+
+// ── Small shared display components ──────────────────────────────────────────
+
+const BADGE_STYLES: Record<string, string> = {
+  // registration statuses
+  confirmed: "border-primary/30 bg-primary/10 text-primary",
+  pending: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  cancelled: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+  rejected: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+  checked_in: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  // event statuses
+  draft: "border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300",
+  published: "border-primary/30 bg-primary/10 text-primary",
+  registration_closed: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+  live: "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+  completed: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  archived: "border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300",
+  // registration state
+  open: "border-primary/30 bg-primary/10 text-primary",
+  almost_full: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  full: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+  closed: "border-orange-500/30 bg-orange-500/10 text-orange-700 dark:text-orange-300",
+  // announcements / tasks / results
+  normal: "border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300",
+  important: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  urgent: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+  todo: "border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300",
+  in_progress: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  done: "border-primary/30 bg-primary/10 text-primary",
+  low: "border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300",
+  medium: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  high: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300",
+  winner: "border-primary/40 bg-primary/10 text-primary",
+  runner_up: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
+  second_runner_up: "border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300",
+  special: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+  participation: "border-zinc-500/30 bg-zinc-500/10 text-zinc-600 dark:text-zinc-300",
+};
+
+const BADGE_LABEL: Record<string, string> = {
+  confirmed: "Confirmed",
+  pending: "Pending",
+  cancelled: "Cancelled",
+  rejected: "Rejected",
+  checked_in: "Checked in",
+  draft: "Draft",
+  published: "Registration Open",
+  registration_closed: "Registration Closed",
+  live: "Live",
+  completed: "Completed",
+  archived: "Archived",
+  open: "Open",
+  almost_full: "Almost Full",
+  full: "Full",
+  closed: "Closed",
+  todo: "To Do",
+  in_progress: "In Progress",
+  done: "Done",
+  runner_up: "Runner-up",
+  second_runner_up: "2nd Runner-up",
+};
+
+export function StatusBadge({
+  status,
+  label,
+  className,
+  dot,
+}: {
+  status: string;
+  label?: string;
+  className?: string;
+  dot?: boolean;
+}) {
+  const style = BADGE_STYLES[status] ?? "border-border bg-muted text-muted-foreground";
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap",
+        style,
+        className,
+      )}
+    >
+      {dot && <span className="size-1.5 rounded-full bg-current" />}
+      {label ?? BADGE_LABEL[status] ?? status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+    </span>
+  );
+}
+
+export function CoverArt({
+  theme,
+  title,
+  className,
+  children,
+}: {
+  theme: number;
+  title?: string;
+  className?: string;
+  children?: ReactNode;
+}) {
+  const t = COVER_THEMES[theme % COVER_THEMES.length] ?? COVER_THEMES[0];
+  return (
+    <div
+      className={cn("relative overflow-hidden", className)}
+      style={{ background: `linear-gradient(130deg, ${t.from} 0%, ${t.to} 90%)` }}
+    >
+      <div
+        className="absolute inset-0 opacity-[0.16]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, rgba(255,255,255,.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.35) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }}
+      />
+      <div
+        className="absolute -right-10 -top-16 size-48 rounded-full opacity-25 blur-2xl"
+        style={{ background: t.accent }}
+      />
+      {title && (
+        <span className="absolute bottom-3 left-4 font-display text-5xl font-bold text-white/15 select-none">
+          {title.slice(0, 1).toUpperCase()}
+        </span>
+      )}
+      {children}
+    </div>
+  );
+}
+
+export function PageHeader({
+  title,
+  description,
+  actions,
+}: {
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <div>
+        <h1 className="font-display text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
+        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+      </div>
+      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/**
+ * Section heading used across dashboards: a title row separated by a hairline
+ * instead of wrapping every block in its own card.
+ */
+export function SectionHeader({
+  title,
+  description,
+  actions,
+}: {
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="flex items-end justify-between gap-3 border-b pb-2">
+      <div className="min-w-0">
+        <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
+        {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
+      </div>
+      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/** Lightweight, layout-stable loading state (no skeleton flash). */
+export function LoadingState({ label = "Loading…" }: { label?: string }) {
+  return (
+    <div
+      role="status"
+      className="flex items-center justify-center gap-2 rounded-lg border border-dashed py-12 text-sm text-muted-foreground"
+    >
+      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+      {label}
+    </div>
+  );
+}
+
+export function StatCard({
+  label,
+  value,
+  icon,
+  hint,
+  tone = "default",
+}: {
+  label: string;
+  value: ReactNode;
+  icon?: ReactNode;
+  hint?: ReactNode;
+  tone?: "default" | "primary";
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-xl border p-4 transition-colors",
+        tone === "primary" ? "border-primary/25 bg-primary/[0.06]" : "bg-card",
+      )}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs font-medium text-muted-foreground">{label}</p>
+        {icon && <span className="text-muted-foreground">{icon}</span>}
+      </div>
+      <p className="mt-2 font-display text-2xl font-bold tabular">{value}</p>
+      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+export function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+}: {
+  icon?: ReactNode;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-14 text-center">
+      {icon && (
+        <div className="mb-3 flex size-11 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+          {icon}
+        </div>
+      )}
+      <p className="font-display text-base font-semibold">{title}</p>
+      {description && <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>}
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
+}
+
+export function LockedBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+      <Lock className="size-3" /> Locked
+    </span>
+  );
+}
