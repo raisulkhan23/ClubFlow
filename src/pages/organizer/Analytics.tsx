@@ -17,6 +17,7 @@ import {
 } from "@/components/RequireRole";
 import type { Id } from "@/convex/_generated/dataModel";
 import { BarChart3, CalendarDays } from "lucide-react";
+import { barHeightPercent, chartMax, resolveSelectedId } from "@/lib/analytics";
 
 const STATUS_ROWS = [
   { key: "confirmed", label: "Confirmed", color: "bg-primary" },
@@ -31,10 +32,10 @@ export default function Analytics() {
   // Only the explicit user choice is state; the default is derived from the
   // query so the first event is selected without a setState-in-effect pass.
   const [pickedEventId, setPickedEventId] = useState<string | null>(null);
-  const selectedEventId =
-    pickedEventId && events?.some((e) => e._id === pickedEventId)
-      ? pickedEventId
-      : (events?.[0]?._id ?? null);
+  const selectedEventId = resolveSelectedId(
+    pickedEventId,
+    (events ?? []).map((e) => e._id),
+  );
 
   const analytics = useQuery(
     api.events.getEventAnalytics,
@@ -67,7 +68,12 @@ export default function Analytics() {
         }
       />
 
-      {events !== undefined && events.length === 0 ? (
+      {events === undefined ? (
+        <div className="space-y-4">
+          <div className="h-[86px] animate-pulse rounded-lg bg-muted/40" />
+          <div className="h-56 animate-pulse rounded-lg bg-muted/30" />
+        </div>
+      ) : events.length === 0 ? (
         <EmptyState
           icon={<CalendarDays />}
           title="No events to analyse yet"
@@ -219,7 +225,7 @@ function BarChart({
     );
   }
 
-  const max = Math.max(...data.map((d) => d.count), 1);
+  const max = chartMax(data.map((d) => d.count));
   const total = data.reduce((s, d) => s + d.count, 0);
 
   return (
@@ -234,7 +240,7 @@ function BarChart({
           <div
             key={i}
             className="flex-1 rounded-t-sm bg-primary/50 transition-colors hover:bg-primary"
-            style={{ height: `${Math.max(2, (d.count / max) * 100)}%` }}
+            style={{ height: `${barHeightPercent(d.count, max)}%` }}
             title={`${d.day}: ${d.count} confirmed`}
           />
         ))}
