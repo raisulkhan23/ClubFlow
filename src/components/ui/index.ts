@@ -19,6 +19,12 @@ export { Badge } from "./badge";           // ~2KB - Status badges
 export { Label } from "./label";           // ~1KB - Form labels
 export { Separator } from "./separator";   // ~1KB - Visual dividers
 export { Skeleton } from "./skeleton";     // ~1KB - Loading placeholders
+// HaloSearchDemo is the default export from halo-search.tsx
+export { default as HaloSearchDemo } from "./halo-search";
+// HaloDropzone exports from halo-dropzone.tsx
+export { HaloDropzone, fileKey } from "./halo-dropzone";
+// HaloDropzone utils exports from halo-dropzone-utils.tsx
+export { HaloDropzone as HaloDropzoneUtils, fileKey as fileKeyUtils } from "./halo-dropzone-utils";
 
 // Form Inputs
 export { Button } from "./button";         // ~3KB - Primary button component
