@@ -5,15 +5,15 @@ This project uses the following tech stack:
 - Typescript
 - React Router v7 (all imports from `react-router` instead of `react-router-dom`)
 - React 19 (for frontend components)
-- Tailwind v4 (for styling)
+- Tailwind CSS v4 (for styling)
 - Shadcn UI (for UI components library)
 - Lucide Icons (for icons)
 - Convex (for backend & database)
 - Convex Auth (for authentication)
 - Framer Motion (for animations)
-- Three js (for 3d models)
+- Three.js (for 3D models)
 
-All relevant files live in the 'src' directory.
+All relevant app files live in the `src` directory.
 
 Use bun for the package manager.
 
@@ -315,6 +315,8 @@ ClubFlow is an operations system for clubs: organizers build events with custom 
 - **Auth:** Convex Auth (email OTP + anonymous demo sessions)
 - **QR:** `qrcode` (ticket generation), `qr-scanner` (camera check-in)
 - **PDF:** jsPDF (certificate download)
+- **Charts:** Recharts (organizer analytics)
+- **Forms:** react-hook-form + Zod (custom registration fields)
 
 ## Architecture
 
@@ -360,6 +362,8 @@ Demo data is seeded automatically (DRMC IT CLUB + 9 events + registrations/atten
 - Offline check-in queueing is not implemented; a manual registration-ID search fallback is provided instead (no fake offline mode).
 - Email/push sending is not configured — announcements use reliable in-app notifications only.
 - CSV import is not implemented (CSV **export** works on the Participants page).
+- Club/organizer branding shown on public event pages is still driven by the live club record in the database, so site-wide copy updates may require a club-record update or re-seed.
+- Public event cards display a static organizer line rather than per-event organizer metadata; this is intentional for the current event model.
 
 ## AI-tool disclosure
 
