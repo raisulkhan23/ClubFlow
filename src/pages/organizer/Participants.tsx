@@ -30,16 +30,32 @@ import { fmtDate } from "@/lib/format";
 import { useState, useMemo } from "react";
 import type { Id } from "@/convex/_generated/dataModel";
 
+type RegRow = {
+  _id: string;
+  eventId: string;
+  eventTitle: string;
+  eventStatus: string;
+  registrationId: string;
+  status: string;
+  type: string;
+  teamName?: string | null;
+  checkedInAt?: number | null;
+  certificateId?: string | null;
+  createdAt: number;
+  participantName: string;
+  participantEmail: string;
+};
+
 const STATUS_FILTER = [
   { value: "all", label: "All statuses" },
   { value: "confirmed", label: "Confirmed" },
   { value: "pending", label: "Pending" },
-  { value: "checked_in", label: "Checked in" },
   { value: "cancelled", label: "Cancelled" },
   { value: "rejected", label: "Rejected" },
+  { value: "checked_in", label: "Checked in" },
 ];
 
-const REGISTERED_COLOR: Record<string, string> = {
+const STATUS_COLOR: Record<string, string> = {
   confirmed: "bg-emerald-500/10 text-emerald-600",
   pending: "bg-amber-500/10 text-amber-600",
   cancelled: "bg-muted text-muted-foreground",
@@ -47,13 +63,12 @@ const REGISTERED_COLOR: Record<string, string> = {
   checked_in: "bg-indigo-500/10 text-indigo-600",
 };
 
-const TOOLTIP_STATUS: Record<string, string> = {
-  confirmed: "Confirmed — will attend",
-  pending: "Awaiting approval",
-  registered: "Registered",
-  checked_in: "Checked in at the venue",
-  cancelled: "Registration cancelled",
-  rejected: "Registration rejected",
+const STATUS_LABEL: Record<string, string> = {
+  confirmed: "Confirmed",
+  pending: "Pending",
+  cancelled: "Cancelled",
+  rejected: "Rejected",
+  checked_in: "Checked in",
 };
 
 export default function Participants() {
@@ -66,25 +81,36 @@ export default function Participants() {
   const [search, setSearch] = useState("");
 
   const events = useQuery(api.events.listForOrganizer);
-  const registrations = useQuery(api.registrations.listAllForOrganizer);
+  const allRegistrations = useQuery(api.registrations.listAllForOrganizer);
 
-  const rows = useMemo(() => {
-    const list = registrations ?? [];
+  const rows = useMemo<RegRow[]>(() => {
+    const list = (allRegistrations ?? []) as RegRow[];
     let filtered = list;
-    if (statusFilter !== "all") {
+
+    // Event filter takes priority when set
+    if (eventFilter) {
+      filtered = filtered.filter((r) => r.eventId === eventFilter);
+    }
+
+    if (statusFilter === "checked_in") {
+      filtered = filtered.filter(
+        (r) => r.status === "confirmed" && r.checkedInAt != null,
+      );
+    } else if (statusFilter !== "all") {
       filtered = filtered.filter((r) => r.status === statusFilter);
     }
+
     if (search.trim()) {
       const s = search.trim().toLowerCase();
       filtered = filtered.filter(
         (r) =>
           r.participantName.toLowerCase().includes(s) ||
-          (r.participantEmail ?? "").toLowerCase().includes(s) ||
-          ((r as unknown as { answers?: Array<{ value: unknown }> }).answers ?? []).some((a: { value: unknown }) => String(a.value).toLowerCase().includes(s)),
+          (r.participantEmail ?? "").toLowerCase().includes(s),
       );
     }
+
     return filtered;
-  }, [registrations, statusFilter, search]);
+  }, [allRegistrations, eventFilter, statusFilter, search]);
 
   const canExport =
     (events ?? []).length > 0 &&
@@ -101,7 +127,7 @@ export default function Participants() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {canExport && (registrations?.length ?? 0) > 0 && (
+          {canExport && (allRegistrations?.length ?? 0) > 0 && (
             <Button
               variant="outline"
               size="sm"
@@ -110,7 +136,7 @@ export default function Participants() {
                   ["Name", "Email", "Status", "Event", "Registered", "Checked in"].join(","),
                   ...rows.map((r) => [
                     r.participantName,
-                    (r as unknown as { email?: string }).email ?? "",
+                    r.participantEmail ?? "",
                     r.status,
                     r.eventTitle ?? "",
                     r.createdAt ? new Date(r.createdAt).toISOString() : "",
@@ -137,7 +163,7 @@ export default function Participants() {
         <div className="relative flex-1 min-w-[220px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search by name, email, or answer…"
+            placeholder="Search by name or email…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9"
@@ -180,7 +206,7 @@ export default function Participants() {
           </EmptyMedia>
           <EmptyTitle>No participants found</EmptyTitle>
           <EmptyDescription>
-            {search || statusFilter !== "all"
+            {search || statusFilter !== "all" || eventFilter
               ? "Try adjusting your filters."
               : "Registrations will appear here once attendees sign up."}
           </EmptyDescription>
@@ -214,10 +240,9 @@ export default function Participants() {
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className={REGISTERED_COLOR[r.status] ?? ""}
-                      style={{ "--tw-tooltip": TOOLTIP_STATUS[r.status] ?? "" } as React.CSSProperties}
+                      className={STATUS_COLOR[r.status] ?? ""}
                     >
-                      {r.status}
+                      {STATUS_LABEL[r.status] ?? r.status}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
