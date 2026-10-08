@@ -99,7 +99,7 @@ export default function Settings() {
                   id="club-name"
                   value={club.name}
                   onChange={(e) => updateClub({ name: e.target.value })}
-                  placeholder="DRMC Tech Club"
+                  placeholder="DRMC IT CLUB"
                 />
               </div>
               <div className="space-y-1.5">

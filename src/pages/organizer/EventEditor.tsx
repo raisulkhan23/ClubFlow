@@ -422,7 +422,7 @@ export default function EventEditor() {
                 id="title"
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                placeholder="DRMC Tech Carnival 2025"
+                placeholder="DRMC IT CLUB Tech Carnival 2025"
               />
             </div>
 
@@ -462,7 +462,7 @@ export default function EventEditor() {
                 id="description"
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Marke the stage, build the future — join the DRMC Tech Carnival…"
+                placeholder="Marke the stage, build the future — join the DRMC IT CLUB Tech Carnival…"
                 rows={5}
               />
             </div>

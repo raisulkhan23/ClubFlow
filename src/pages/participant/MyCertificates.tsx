@@ -19,7 +19,7 @@ export default function MyCertificates() {
     setBusyId(c.certificateId);
     try {
       await generateCertificatePdf({
-        clubName: "DRMC Tech Club",
+        clubName: "DRMC IT CLUB",
         eventTitle: c.eventTitle,
         participantName: c.participantName ?? "Participant",
         achievement: c.achievement,

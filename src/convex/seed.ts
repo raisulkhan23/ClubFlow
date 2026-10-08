@@ -75,7 +75,7 @@ export async function runSeed(ctx: MutationCtx): Promise<{ seeded: boolean }> {
 
     // ── Club ──────────────────────────────────────────────────────────────
     const clubId = await ctx.db.insert("clubs", {
-      name: "DRMC Tech Club",
+      name: "DRMC IT CLUB",
       slug: "drmc-tech-carnival",
       description:
         "The official technology club of Dhaka Residential Model College, organizing the 9th DRMC International Tech Carnival 2026.",
