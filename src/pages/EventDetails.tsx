@@ -46,7 +46,7 @@ export default function EventDetails() {
     );
   }
 
-  const { event, club, publishedResults, announcements } = data;
+  const { event, publishedResults, announcements } = data;
   const fillPct = Math.min(100, Math.round((event.confirmedCount / event.capacity) * 100));
   const isOver = event.endAt < now;
 
