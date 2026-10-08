@@ -311,7 +311,7 @@ export default function EventEditor() {
   return (
     <div className="space-y-6 px-4 py-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
+        <h1 className="font-display text-xl font-bold tracking-tight sm:text-[1.375rem]">
           {isNew ? "Create event" : "Edit event"}
         </h1>
         <p className="mt-1 text-muted-foreground">

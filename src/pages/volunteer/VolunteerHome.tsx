@@ -33,7 +33,7 @@ export default function VolunteerHome() {
   return (
     <div className="space-y-6 px-4 py-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Volunteer home</h1>
+        <h1 className="font-display text-xl font-bold tracking-tight sm:text-[1.375rem]">Volunteer home</h1>
         <p className="mt-1 text-muted-foreground">
           Your tasks and upcoming shifts at a glance.
         </p>

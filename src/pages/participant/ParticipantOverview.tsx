@@ -1,10 +1,17 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ParticipantShell } from "./ParticipantShell";
-import { CoverArt, EmptyState, PageHeader, StatCard, StatusBadge } from "@/components/RequireRole";
+import {
+  CoverArt,
+  EmptyState,
+  PageHeader,
+  Metric,
+  MetricStrip,
+  StatusBadge,
+} from "@/components/RequireRole";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CalendarDays, MapPin, Megaphone, Ticket } from "lucide-react";
+import { CalendarDays, MapPin } from "lucide-react";
 import { Link } from "react-router";
 import { countdown, fmtDate, fmtRelative } from "@/lib/format";
 
@@ -24,27 +31,32 @@ export default function ParticipantOverview() {
       />
 
       {data === undefined ? (
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
-          <Skeleton className="h-24" />
+        <div className="mt-6 space-y-3">
+          <Skeleton className="h-20" />
+          <Skeleton className="h-20" />
         </div>
       ) : (
         <>
-          <div className="mt-6 grid gap-4 sm:grid-cols-3">
-            <StatCard label="Active registrations" value={data.totalRegistrations} icon={<Ticket className="size-4" />} />
-            <StatCard label="Certificates" value={data.certificates} icon={<span>🏅</span>} />
-            <StatCard label="Unread notifications" value={data.unread} icon={<Megaphone className="size-4" />} />
-          </div>
+        <div className="mt-6">
+          <MetricStrip columns={3}>
+            <Metric label="Active" value={data.totalRegistrations} hint="registrations" />
+            <Metric label="Certificates" value={data.certificates} hint="available" />
+            <Metric
+              label="Unread"
+              value={data.unread}
+              hint="notifications"
+              tone={data.unread > 0 ? "primary" : "default"}
+            />
+          </MetricStrip>
+        </div>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
             {/* Upcoming */}
-            <section>
-              <h2 className="font-display text-lg font-semibold">Upcoming registrations</h2>
-              <div className="mt-3 space-y-3">
+            <section>                  <h2 className="font-display text-sm font-semibold tracking-tight">Upcoming registrations</h2>
+                  <div className="mt-3 space-y-2">
                 {data.upcoming.length === 0 && (
                   <EmptyState
-                    icon={<CalendarDays className="size-5" />}
+                    icon={<CalendarDays />}
                     title="No upcoming events yet"
                     description="When you register for an event, it shows up here with your QR ticket."
                     action={<Button asChild><Link to="/events">Find an event</Link></Button>}
@@ -54,7 +66,7 @@ export default function ParticipantOverview() {
                   <Link
                     key={r._id}
                     to={`/dashboard/registrations/${r._id}`}
-                    className="group flex overflow-hidden rounded-xl border bg-card transition-colors hover:border-primary/40"
+                    className="group flex overflow-hidden rounded-lg border bg-card transition-colors hover:border-primary/40"
                   >
                     <CoverArt theme={r.event.coverTheme} className="w-24 shrink-0" />
                     <div className="min-w-0 flex-1 p-4">
@@ -76,16 +88,15 @@ export default function ParticipantOverview() {
             </section>
 
             {/* Announcements */}
-            <section>
-              <h2 className="font-display text-lg font-semibold">Announcements</h2>
-              <div className="mt-3 space-y-2">
+            <section>                  <h2 className="font-display text-sm font-semibold tracking-tight">Announcements</h2>
+                  <div className="mt-3 space-y-2">
                 {data.announcements.length === 0 && (
-                  <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
                     Announcements from your events will appear here.
                   </p>
                 )}
                 {data.announcements.map((a) => (
-                  <div key={a._id} className="rounded-xl border bg-card p-4">
+                  <div key={a._id} className="rounded-lg border bg-card p-3.5">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-semibold">{a.title}</p>
                       <StatusBadge status={a.priority} />

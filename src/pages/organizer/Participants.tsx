@@ -3,7 +3,7 @@ import { api } from "@/convex/_generated/api";
 import { Download, Search, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader, StatusBadge } from "@/components/RequireRole";
 import {
   Table,
   TableBody,
@@ -53,21 +53,6 @@ const STATUS_FILTER = [
   { value: "checked_in", label: "Checked in" },
 ];
 
-const STATUS_COLOR: Record<string, string> = {
-  confirmed: "bg-emerald-500/10 text-emerald-600",
-  pending: "bg-amber-500/10 text-amber-600",
-  cancelled: "bg-muted text-muted-foreground",
-  rejected: "bg-rose-500/10 text-rose-600",
-  checked_in: "bg-indigo-500/10 text-indigo-600",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  confirmed: "Confirmed",
-  pending: "Pending",
-  cancelled: "Cancelled",
-  rejected: "Rejected",
-  checked_in: "Checked in",
-};
 
 export default function Participants() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -116,15 +101,18 @@ export default function Participants() {
     typeof URL !== "undefined";
 
   return (
-    <div className="space-y-6 px-4 py-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Participants</h1>
-          <p className="mt-1 text-muted-foreground">
-            View and manage registrations across your events.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
+    <div className="space-y-6 px-4 py-7 sm:px-6">
+      <PageHeader
+        title="Participants"
+        description={
+          rows.length > 0
+            ? `${rows.length} registration${rows.length === 1 ? "" : "s"} shown${
+                eventFilter ? ` for ${events?.find((e) => e._id === eventFilter)?.title ?? "this event"}` : ""
+              }.`
+            : "Registrations across every event you run."
+        }
+        actions={
+          <>
           {canExport && (allRegistrations?.length ?? 0) > 0 && (
             <Button
               variant="outline"
@@ -150,28 +138,33 @@ export default function Participants() {
                 URL.revokeObjectURL(url);
               }}
             >
-              <Download className="mr-2 size-4" />
+              <Download className="size-4" />
               Export CSV
             </Button>
           )}
-        </div>
-      </div>
+          </>
+        }
+      />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative flex-1 min-w-[220px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="relative flex-1 sm:min-w-[220px]">
+          <Search
+            className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
           <Input
             placeholder="Search by name or email…"
+            aria-label="Search participants"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="h-9 pl-8"
           />
         </div>
         <Select
           value={eventFilter ?? "all"}
           onValueChange={(v) => setEventFilter(v === "all" ? null : v)}
         >
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="h-9 w-full sm:w-[200px]" aria-label="Filter by event">
             <SelectValue placeholder="All events" />
           </SelectTrigger>
           <SelectContent>
@@ -184,7 +177,7 @@ export default function Participants() {
           </SelectContent>
         </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[170px]">
+          <SelectTrigger className="h-9 w-full sm:w-[170px]" aria-label="Filter by status">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -210,54 +203,56 @@ export default function Participants() {
           </EmptyDescription>
         </Empty>
       ) : (
-        <div className="rounded-lg border bg-table">
+        <div className="overflow-hidden rounded-lg border bg-table">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50 hover:bg-muted/50">
-                <TableHead className="w-[180px]">Participant</TableHead>
-                <TableHead className="w-[160px]">Status</TableHead>
-                <TableHead className="w-[160px]">Event</TableHead>
-                <TableHead className="w-[130px]">Registered</TableHead>
-                <TableHead className="w-[120px]">Checked in</TableHead>
-                <TableHead className="w-[110px]"></TableHead>
+              <TableRow className="bg-muted/40 hover:bg-muted/40">
+                <TableHead className="h-9 pl-4 w-[180px]">Participant</TableHead>
+                <TableHead className="h-9 w-[120px]">Status</TableHead>
+                <TableHead className="h-9 w-[160px]">Event</TableHead>
+                <TableHead className="h-9 w-[110px]">Registered</TableHead>
+                <TableHead className="h-9 w-[110px]">Checked in</TableHead>
+                <TableHead className="h-9 w-[110px] text-right pr-4">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((r) => (
                 <TableRow key={r._id}>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{r.participantName}</span>
+                  <TableCell className="py-2.5 pl-4">
+                    <div className="flex min-w-0 flex-col">
+                      <span className="truncate font-medium">{r.participantName}</span>
                       {r.participantEmail && (
-                        <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                        <span className="max-w-[220px] truncate text-xs text-muted-foreground">
                           {r.participantEmail}
                         </span>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={STATUS_COLOR[r.status] ?? ""}
-                    >
-                      {STATUS_LABEL[r.status] ?? r.status}
-                    </Badge>
+                  <TableCell className="py-2.5">
+                    <div className="flex flex-col items-start gap-1">
+                      <StatusBadge status={r.checkedInAt != null ? "checked_in" : r.status} dot />
+                      {r.teamName && (
+                        <span className="max-w-[140px] truncate text-[11px] text-muted-foreground">
+                          Team · {r.teamName}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="max-w-[200px] truncate py-2.5 text-sm text-muted-foreground">
                     {r.eventTitle ?? "—"}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="py-2.5 text-xs text-muted-foreground tabular whitespace-nowrap">
                     {r.createdAt ? fmtDate(r.createdAt) : "—"}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="py-2.5 text-xs text-muted-foreground tabular whitespace-nowrap">
                     {r.checkedInAt ? fmtDate(r.checkedInAt) : "—"}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-2.5 pr-4 text-right">
                     <Button
                       size="sm"
                       variant="ghost"
                       asChild
-                      className="text-muted-foreground hover:text-foreground"
+                      className="h-7 text-xs text-muted-foreground hover:text-foreground"
                     >
                       <a href={`/dashboard/registrations/${r._id}`}>Details</a>
                     </Button>

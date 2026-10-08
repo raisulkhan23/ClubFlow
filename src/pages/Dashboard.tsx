@@ -21,7 +21,7 @@ export default function Dashboard() {
             <p className="text-sm font-medium text-muted-foreground">
               Authenticated workspace
             </p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight">
+            <h1 className="mt-1 font-display text-xl font-bold tracking-tight sm:text-[1.375rem]">
               Welcome{user?.name ? `, ${user.name}` : ""}
             </h1>
           </div>

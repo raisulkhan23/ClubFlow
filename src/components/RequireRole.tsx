@@ -234,21 +234,79 @@ export function CoverArt({
 }
 
 export function PageHeader({
+  eyebrow,
   title,
   description,
   actions,
 }: {
+  eyebrow?: ReactNode;
   title: string;
   description?: string;
   actions?: ReactNode;
 }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-      <div>
-        <h1 className="font-display text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+      <div className="min-w-0">
+        {eyebrow && (
+          <div className="mb-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+            {eyebrow}
+          </div>
+        )}
+        <h1 className="font-display text-xl font-bold tracking-tight text-balance sm:text-[1.375rem]">
+          {title}
+        </h1>
+        {description && (
+          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
+        )}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/**
+ * A single figure inside a metric strip. Deliberately flat: the strip already
+ * provides the container, so nesting this in its own card would be noise.
+ */
+export function Metric({
+  label,
+  value,
+  hint,
+  tone = "default",
+  className,
+}: {
+  label: string;
+  value: ReactNode;
+  hint?: ReactNode;
+  tone?: "default" | "primary" | "warning" | "danger" | "success";
+  className?: string;
+}) {
+  const toneClass: Record<string, string> = {
+    default: "",
+    primary: "text-primary",
+    warning: "text-amber-600 dark:text-amber-300",
+    danger: "text-red-600 dark:text-red-300",
+    success: "text-emerald-600 dark:text-emerald-300",
+  };
+  return (
+    <div
+      className={cn(
+        "min-w-0 rounded-md bg-card px-4 py-3.5 ring-1 ring-border lg:rounded-none lg:ring-0",
+        className,
+      )}
+    >
+      <p className="truncate text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+        {label}
+      </p>
+      <p
+        className={cn(
+          "mt-1.5 font-display text-2xl leading-none font-semibold tabular",
+          toneClass[tone],
+        )}
+      >
+        {value}
+      </p>
+      {hint && <p className="mt-1.5 truncate text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }
@@ -282,7 +340,7 @@ export function LoadingState({ label = "Loading…" }: { label?: string }) {
   return (
     <div
       role="status"
-      className="flex items-center justify-center gap-2 rounded-lg border border-dashed py-12 text-sm text-muted-foreground"
+      className="flex items-center justify-center gap-2 rounded-lg border border-dashed py-10 text-sm text-muted-foreground"
     >
       <Loader2 className="size-4 animate-spin" aria-hidden="true" />
       {label}
@@ -306,16 +364,46 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "rounded-xl border p-4 transition-colors",
-        tone === "primary" ? "border-primary/25 bg-primary/[0.06]" : "bg-card",
+        "rounded-lg border p-4 transition-colors",
+        tone === "primary" ? "border-primary/25 bg-primary/[0.05]" : "bg-card",
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-medium text-muted-foreground">{label}</p>
-        {icon && <span className="text-muted-foreground">{icon}</span>}
+        <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+          {label}
+        </p>
+        {icon && <span className="text-muted-foreground [&>svg]:size-4">{icon}</span>}
       </div>
-      <p className="mt-2 font-display text-2xl font-bold tabular">{value}</p>
-      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+      <p className="mt-2 font-display text-2xl leading-none font-semibold tabular">{value}</p>
+      {hint && <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>}
+    </div>
+  );
+}
+
+/**
+ * A flat band of related figures. Wrapped tiles on small screens, a single
+ * divided strip on large screens — deliberately not a row of separate cards.
+ */
+export function MetricStrip({
+  columns = 5,
+  children,
+}: {
+  columns?: number;
+  children: ReactNode;
+}) {
+  const lgCols: Record<number, string> = {
+    3: "lg:grid-cols-3",
+    4: "lg:grid-cols-4",
+    5: "lg:grid-cols-5",
+  };
+  return (
+    <div
+      className={cn(
+        "grid grid-cols-2 gap-3 lg:gap-0 lg:divide-x lg:divide-border lg:overflow-hidden lg:rounded-lg lg:border lg:bg-card",
+        lgCols[columns] ?? "lg:grid-cols-5",
+      )}
+    >
+      {children}
     </div>
   );
 }
@@ -332,13 +420,13 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed px-6 py-14 text-center">
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed px-6 py-12 text-center">
       {icon && (
-        <div className="mb-3 flex size-11 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+        <div className="mb-3 flex size-10 items-center justify-center rounded-md bg-muted text-muted-foreground [&>svg]:size-4.5">
           {icon}
         </div>
       )}
-      <p className="font-display text-base font-semibold">{title}</p>
+      <p className="font-display text-sm font-semibold">{title}</p>
       {description && <p className="mt-1 max-w-sm text-sm text-muted-foreground">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>

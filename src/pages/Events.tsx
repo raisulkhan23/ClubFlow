@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/RequireRole";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
 import { CalendarDays, MapPin, Search, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router";
@@ -34,8 +35,8 @@ export default function Events() {
       {/* Header */}
       <header className="border-b bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-14 w-full max-w-6xl items-center justify-between px-4">
-          <Link to="/" className="flex items-center gap-2 font-display text-base font-bold">
-            Club<span className="text-primary">Flow</span>
+          <Link to="/" aria-label="ClubFlow home">
+            <Logo markClass="size-7" />
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
@@ -95,7 +96,7 @@ export default function Events() {
         {events === undefined ? (
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="overflow-hidden rounded-xl border">
+              <div key={i} className="overflow-hidden rounded-lg border">
                 <Skeleton className="h-32 w-full rounded-none" />
                 <div className="space-y-2 p-4">
                   <Skeleton className="h-5 w-3/4" />
@@ -108,8 +109,8 @@ export default function Events() {
         ) : events.length === 0 ? (
           <div className="mt-8">
             <EmptyState
-              icon={<Search className="size-5" />}
-              title="No events match your filters"
+              icon={<Search />}
+              title="No events match your search"
               description="Try a different search term or category — new events are published regularly."
             />
           </div>
@@ -121,11 +122,11 @@ export default function Events() {
                 <Link
                   key={e._id}
                   to={`/events/${e.slug}`}
-                  className="group overflow-hidden rounded-xl border bg-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+                  className="group overflow-hidden rounded-lg border bg-card transition-colors hover:border-primary/40"
                 >
                   <CoverArt theme={e.coverTheme} title={e.title} className="h-32">
                     <div className="flex items-start justify-between p-3">
-                      <span className="rounded-full bg-black/40 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">
+                      <span className="rounded bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white">
                         {e.category}
                       </span>
                       <StatusBadge status={e.state} dot={e.state === "live"} />
@@ -135,7 +136,9 @@ export default function Events() {
                     <h3 className="font-display font-semibold leading-snug group-hover:text-primary">
                       {e.title}
                     </h3>
-                    <p className="mt-1 text-xs text-muted-foreground">by DRMC IT CLUB</p>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      by {e.clubName}
+                    </p>
                     <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
                       <p className="flex items-center gap-1.5">
                         <CalendarDays className="size-3.5 shrink-0" /> {fmtDateTime(e.startAt)}
@@ -149,7 +152,7 @@ export default function Events() {
                       </p>
                     </div>
                     {e.teamEvent && (
-                      <p className="mt-2 inline-flex rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                      <p className="mt-2 inline-flex rounded bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">
                         Team event · {e.minTeamSize}–{e.maxTeamSize} members
                       </p>
                     )}

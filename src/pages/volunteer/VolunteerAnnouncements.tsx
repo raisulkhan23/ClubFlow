@@ -23,7 +23,7 @@ export default function VolunteerAnnouncements() {
   return (
     <div className="space-y-6 px-4 py-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Announcements</h1>
+        <h1 className="font-display text-xl font-bold tracking-tight sm:text-[1.375rem]">Announcements</h1>
         <p className="mt-1 text-muted-foreground">
           Updates from organizers for your events.
         </p>

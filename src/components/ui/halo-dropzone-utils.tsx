@@ -1064,7 +1064,7 @@ function useImageObjectUrl(file: File): string | null {
     let objectUrl: string | null = null
 
     if (!looksLikeImageFile(file)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing URL when file is not an image
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- clearing the preview URL when the file is not an image
       setUrl(null)
       return
     }

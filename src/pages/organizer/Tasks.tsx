@@ -79,7 +79,7 @@ export default function Tasks() {
   return (
     <div className="space-y-6 px-4 py-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
+        <h1 className="font-display text-xl font-bold tracking-tight sm:text-[1.375rem]">Tasks</h1>
         <p className="mt-1 text-muted-foreground">
           Assign and track work across your events.
         </p>

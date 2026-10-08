@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState, useCallback, useEffect } from "react"
 import { cn } from "@/lib/utils"
-import { motion, useReducedMotion, useMotionValue, useTransform } from "framer-motion"
+import { motion, useReducedMotion, useMotionValue } from "framer-motion"
 
 interface HaloSearchInputProps extends React.ComponentProps<"input"> {
   isLoading?: boolean
@@ -21,9 +21,6 @@ function useAccumulator(
   reduceMotion: boolean
 ) {
   const displayed = useMotionValue(0)
-  // Keep rounded transform for potential future use
-  const _rounded = useTransform(displayed, (v: number) => Math.round(v))
-  void _rounded
 
   useEffect(() => {
     if (reduceMotion) {
@@ -52,7 +49,7 @@ function useAccumulator(
     }
     rafId = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(rafId)
-  }, [isActive, totalChars, staggerSec, charDurationSec, reduceMotion, motion])
+  }, [isActive, totalChars, staggerSec, charDurationSec, reduceMotion, displayed])
 
   return displayed
 }

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Empty, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
-import { Separator } from "@/components/ui/separator";
+import { PageHeader } from "@/components/RequireRole";
 import { fmtDate, fmtDateTime } from "@/lib/format";
 import { QrScannerPanel } from "@/components/QrScannerPanel";
 import { toast } from "sonner";
@@ -141,13 +141,16 @@ export default function CheckInPage() {
   }
 
   return (
-    <div className="space-y-6 px-4 py-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Check-in</h1>
-        <p className="mt-1 text-muted-foreground">
-          Scan QR codes or search by name to check attendees in.
-        </p>
-      </div>
+    <div className="space-y-6 px-4 py-7 sm:px-6">
+      <PageHeader
+        eyebrow="Event operations"
+        title="Check-in"
+        description={
+          activeEvent
+            ? `Scanning for ${activeEvent.title} — ${checkedIn.length} of ${(registrations ?? []).length} checked in.`
+            : "Scan QR tickets or search by name to check attendees in."
+        }
+      />
 
       <div className="grid lg:grid-cols-5 gap-6">
         {/* Scanner + controls */}
@@ -315,8 +318,6 @@ export default function CheckInPage() {
           )}
         </div>
       </div>
-
-      <Separator className="my-6" />
     </div>
   );
 }

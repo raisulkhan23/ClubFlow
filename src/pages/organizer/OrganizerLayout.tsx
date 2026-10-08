@@ -70,7 +70,7 @@ export default function OrganizerLayout() {
               end={item.to === "/organizer"}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                  "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-sm text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring",
                   isActive &&
                     "bg-muted font-medium text-foreground shadow-[inset_2px_0_0_0_var(--primary)]",
                 )
@@ -99,7 +99,7 @@ export default function OrganizerLayout() {
               key={item.to}
               to={item.to}
               className={cn(
-                "flex min-w-[58px] flex-1 flex-col items-center gap-0.5 rounded-md px-1.5 py-1.5 text-[10px] font-medium text-muted-foreground transition-colors",
+                "flex min-w-[58px] flex-1 flex-col items-center gap-0.5 rounded-md px-1.5 py-1.5 text-[10px] font-medium text-muted-foreground transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 active && "bg-muted text-foreground",
               )}
             >
@@ -136,7 +136,9 @@ export default function OrganizerLayout() {
           </div>
         </aside>
         <main className="flex-1 overflow-y-auto">
-          <Outlet />
+          <div className="mx-auto w-full max-w-[1180px]">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

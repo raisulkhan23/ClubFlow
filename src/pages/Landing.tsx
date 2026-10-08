@@ -119,7 +119,7 @@ export default function Landing() {
             <CalendarCheck2 className="size-3.5" />
             Built for the 9th DRMC International Tech Carnival 2026
           </span>
-          <h1 className="mt-5 max-w-2xl font-display text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
+          <h1 className="mt-5 max-w-2xl font-display text-4xl font-bold leading-[1.06] tracking-tight text-balance sm:text-5xl">
             Your entire fest.
             <br />
             <span className="text-gradient-lime">One smart platform.</span>
@@ -165,24 +165,32 @@ export default function Landing() {
         <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {events === undefined &&
             Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-64 animate-pulse rounded-xl border bg-muted/40" />
+              <div key={i} className="h-64 animate-pulse rounded-lg border bg-muted/40" />
             ))}
           {events?.map((e) => (
             <Link
               key={e._id}
               to={`/events/${e.slug}`}
-              className="group overflow-hidden rounded-xl border bg-card transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5"
+              className="group overflow-hidden rounded-lg border bg-card transition-colors hover:border-primary/40"
             >
               <CoverArt theme={e.coverTheme} title={e.title} className="h-28">
                 <div className="flex items-start justify-between p-3">
-                  <span className="rounded-full bg-black/40 px-2.5 py-1 text-xs font-medium text-white">{e.category}</span>
+                  <span className="rounded bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white">
+                    {e.category}
+                  </span>
                   <StatusBadge status={e.state} dot={e.state === "live"} />
                 </div>
               </CoverArt>
               <div className="p-4">
-                <h3 className="font-display font-semibold group-hover:text-primary">{e.title}</h3>
-                <p className="mt-1 text-xs text-muted-foreground">{fmtDate(e.startAt)} · {e.venue}</p>
-                <p className="mt-2 text-xs text-muted-foreground">{e.confirmedCount}/{e.capacity} registered · by {e.clubName}</p>
+                <h3 className="truncate font-display font-semibold group-hover:text-primary">
+                  {e.title}
+                </h3>
+                <p className="mt-1 truncate text-xs text-muted-foreground">
+                  {fmtDate(e.startAt)} · {e.venue}
+                </p>
+                <p className="mt-2 text-xs text-muted-foreground tabular">
+                  {e.confirmedCount}/{e.capacity} registered · by {e.clubName}
+                </p>
               </div>
             </Link>
           ))}
@@ -243,7 +251,7 @@ export default function Landing() {
           <h2 className="text-center font-display text-2xl font-bold tracking-tight sm:text-3xl">
             The end of the Google Forms era
           </h2>
-          <div className="mt-8 overflow-hidden rounded-xl border">
+          <div className="mt-8 overflow-hidden rounded-lg border">
             <div className="grid grid-cols-2 text-sm">
               <div className="border-b bg-muted/60 p-3 font-semibold text-muted-foreground">With Google Forms + Sheets + WhatsApp</div>
               <div className="border-b border-l bg-primary/[0.06] p-3 font-semibold text-primary">With ClubFlow</div>
