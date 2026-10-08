@@ -106,7 +106,7 @@ export default function EventDetails() {
             )}
           </div>
           <h1 className="mt-3 max-w-2xl font-display text-2xl font-bold text-white sm:text-4xl">{event.title}</h1>
-          <p className="mt-1 text-sm text-white/70">Hosted by {club?.name}</p>
+          <p className="mt-1 text-sm text-white/70">Hosted by DRMC IT CLUB</p>
         </div>
       </CoverArt>
 
@@ -280,7 +280,7 @@ export default function EventDetails() {
             <h3 className="text-sm font-semibold">Contact</h3>
             <p className="mt-1.5 text-muted-foreground">{event.contactEmail}</p>
             {event.contactPhone && <p className="text-muted-foreground">{event.contactPhone}</p>}
-            <p className="mt-2 text-xs text-muted-foreground">Organized by {club?.name}</p>
+            <p className="mt-2 text-xs text-muted-foreground">Organized by DRMC IT CLUB</p>
           </div>
         </aside>
       </main>

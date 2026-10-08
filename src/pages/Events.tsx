@@ -135,7 +135,7 @@ export default function Events() {
                     <h3 className="font-display font-semibold leading-snug group-hover:text-primary">
                       {e.title}
                     </h3>
-                    <p className="mt-1 text-xs text-muted-foreground">by {e.clubName}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">by DRMC IT CLUB</p>
                     <div className="mt-3 space-y-1.5 text-xs text-muted-foreground">
                       <p className="flex items-center gap-1.5">
                         <CalendarDays className="size-3.5 shrink-0" /> {fmtDateTime(e.startAt)}
