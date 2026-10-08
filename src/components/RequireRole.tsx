@@ -183,7 +183,7 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap",
+        "inline-flex items-center gap-1.5 rounded border px-2 py-0.5 text-[11px] font-medium whitespace-nowrap",
         style,
         className,
       )}
@@ -245,10 +245,47 @@ export function PageHeader({
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
       <div>
-        <h1 className="font-display text-2xl font-bold tracking-tight">{title}</h1>
+        <h1 className="font-display text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
         {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/**
+ * Section heading used across dashboards: a title row separated by a hairline
+ * instead of wrapping every block in its own card.
+ */
+export function SectionHeader({
+  title,
+  description,
+  actions,
+}: {
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="flex items-end justify-between gap-3 border-b pb-2">
+      <div className="min-w-0">
+        <h2 className="font-display text-sm font-semibold tracking-tight">{title}</h2>
+        {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
+      </div>
+      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/** Lightweight, layout-stable loading state (no skeleton flash). */
+export function LoadingState({ label = "Loading…" }: { label?: string }) {
+  return (
+    <div
+      role="status"
+      className="flex items-center justify-center gap-2 rounded-lg border border-dashed py-12 text-sm text-muted-foreground"
+    >
+      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+      {label}
     </div>
   );
 }

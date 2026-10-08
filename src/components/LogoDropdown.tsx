@@ -5,14 +5,17 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import logo from "@/assets/logo.svg";
 import { useAuth } from "@/hooks/use-auth";
-import { Home, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router";
 
+/**
+ * Account menu used in the organizer sidebar. The "go home" affordance lives
+ * next to it as an explicit link, so this menu only carries the account action.
+ */
 export function LogoDropdown() {
   const { isAuthenticated, signOut } = useAuth();
   const navigate = useNavigate();
@@ -26,40 +29,29 @@ export function LogoDropdown() {
     }
   };
 
-  const handleGoHome = () => {
-    navigate("/");
-  };
+  if (!isAuthenticated) return null;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-10 w-10">
+        <Button variant="ghost" size="icon" className="size-9 shrink-0" aria-label="Account menu">
           <img
             src={logo}
-            alt="Logo"
-            width={32}
-            height={32}
-            className="rounded-lg"
+            alt=""
+            width={26}
+            height={26}
+            className="rounded-md"
           />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-48">
-        <DropdownMenuItem onClick={handleGoHome} className="cursor-pointer">
-          <Home className="mr-2 h-4 w-4" />
-          Landing Page
+      <DropdownMenuContent align="start" className="w-44">
+        <DropdownMenuItem
+          onClick={handleSignOut}
+          className="cursor-pointer text-destructive focus:text-destructive"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Sign out
         </DropdownMenuItem>
-        {isAuthenticated && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleSignOut}
-              className="cursor-pointer text-destructive focus:text-destructive"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
-            </DropdownMenuItem>
-          </>
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

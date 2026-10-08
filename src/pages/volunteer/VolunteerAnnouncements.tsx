@@ -59,7 +59,7 @@ export default function VolunteerAnnouncements() {
                           a.priority === "urgent"
                             ? "bg-rose-500/10 text-rose-700"
                             : a.priority === "important"
-                            ? "bg-amber-500/10 text-amber-700"
+                            ? "bg-amber-500/10 text-amber-700 dark:text-amber-300"
                             : ""
                         }
                       >

@@ -205,7 +205,7 @@ export default function CheckInPage() {
                     <div
                       className={`rounded-lg border p-3 ${
                         scanResult.status === "checked_in"
-                          ? "bg-emerald-500/10 border-emerald-200"
+                          ? "border-emerald-500/40 bg-emerald-500/10"
                           : scanResult.status === "rejected" || scanResult.status === "cancelled" || scanResult.status === "pending"
                           ? "bg-muted/50 border-border"
                           : "bg-primary/10 border-primary/20"
@@ -217,11 +217,11 @@ export default function CheckInPage() {
                           variant="outline"
                           className={
                             scanResult.status === "checked_in"
-                              ? "bg-emerald-500/10 text-emerald-700 border-emerald-200"
+                              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
                               : scanResult.status === "rejected" || scanResult.status === "cancelled"
                               ? "border-muted text-muted-foreground"
                               : scanResult.status === "pending"
-                              ? "border-amber-300 text-amber-700"
+                              ? "border-amber-500/40 text-amber-700 dark:text-amber-300"
                               : ""
                           }
                         >
@@ -249,7 +249,7 @@ export default function CheckInPage() {
           </Card>
 
           {justCheckedIn && (
-            <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 animate-[border-pulse_1.5s_ease-in-out]">
+            <div className="flex items-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-700 dark:text-emerald-300">
               <CheckCircle2 className="size-4" />
               <span>Checked in successfully.</span>
             </div>
@@ -284,7 +284,7 @@ export default function CheckInPage() {
                         </p>
                       )}
                     </div>
-                    <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-200 shrink-0">
+                    <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shrink-0">
                       {r.checkedInAt ? fmtDateTime(r.checkedInAt) : "—"}
                     </Badge>
                   </div>

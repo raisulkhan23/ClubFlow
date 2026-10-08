@@ -107,7 +107,7 @@ export default function Admin() {
                               : u.role === "organizer"
                               ? "text-indigo-700 border-indigo-200 bg-indigo-500/10"
                               : u.role === "volunteer"
-                              ? "text-amber-700 border-amber-200 bg-amber-500/10"
+                              ? "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300"
                               : "text-muted-foreground"
                           }
                         >

@@ -32,8 +32,8 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_COLOR: Record<string, string> = {
   draft: "bg-muted text-muted-foreground",
-  published: "bg-emerald-500/10 text-emerald-700",
-  registration_closed: "bg-amber-500/10 text-amber-700",
+  published: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  registration_closed: "bg-amber-500/10 text-amber-700 dark:text-amber-300",
   live: "bg-rose-500/10 text-rose-700",
   completed: "bg-indigo-500/10 text-indigo-700",
 };
@@ -211,7 +211,7 @@ export default function OrganizerOverview() {
 
           {/* Needs attention — only when there is something to act on */}
           {needsAttention.length > 0 && (
-            <Card className="border-amber-200/60">
+            <Card className="border-amber-500/40">
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <AlertCircle className="size-4 text-amber-500" />

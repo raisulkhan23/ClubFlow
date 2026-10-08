@@ -51,7 +51,8 @@
 
 /* CHANGE VALUES FOR THEME */
 :root {
-  --radius: 0.625rem;
+  /* Restrained radius system: 4 / 6 / 8 / 12px via sm-md-lg-xl steps */
+  --radius: 0.5rem;
   /* Light theme — lime-tinted neutral, dark lime for contrast */
   --background: oklch(0.985 0.004 120);
   --foreground: oklch(0.21 0.02 160);
@@ -161,22 +162,23 @@
   .bg-grid-fade {
     mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 75%);
   }
-  /* Glassmorphism panel used sparingly on hero/nav surfaces */
-  .glass-panel {
-    background: color-mix(in oklab, var(--card) 72%, transparent);
-    backdrop-filter: blur(14px);
-    border: 1px solid var(--border);
-  }
+  /* Single restrained gradient-text accent (hero headline only) */
   .text-gradient-lime {
     background: linear-gradient(100deg, var(--primary) 10%, oklch(0.9 0.12 165) 60%, var(--primary) 95%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  .ring-glow {
-    box-shadow: 0 0 0 1px oklch(from var(--primary) l c h / 35%), 0 0 32px oklch(from var(--primary) l c h / 18%);
-  }
   .tabular {
     font-variant-numeric: tabular-nums;
+  }
+  /* Consistent numeric/metric typography */
+  .metric-value {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
   }
 }

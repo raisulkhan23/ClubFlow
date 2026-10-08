@@ -110,7 +110,7 @@ export default function VolunteerCheckIn() {
         <div
           className={`flex items-center gap-2 rounded-lg border px-4 py-3 text-sm ${
             result.ok
-              ? "border-emerald-200 bg-emerald-500/10 text-emerald-700"
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
               : "border-rose-200 bg-rose-500/10 text-rose-700"
           }`}
         >
@@ -172,7 +172,7 @@ export default function VolunteerCheckIn() {
                 {lastCheckedIn.map((r) => (
                   <div
                     key={r.registrationId}
-                    className="flex items-center justify-between rounded-md border border-emerald-200 bg-emerald-500/5 px-3 py-2 text-sm"
+                    className="flex items-center justify-between rounded-md border border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm"
                   >
                     <span className="font-medium">{r.participantName}</span>
                     <span className="font-mono text-xs text-muted-foreground">
@@ -206,7 +206,7 @@ export default function VolunteerCheckIn() {
                       className="flex items-center justify-between gap-2 rounded-md border border-border/60 bg-muted/50 px-3 py-2 text-sm"
                     >
                       <span className="font-medium truncate">{r.participantName}</span>
-                      <Badge className="bg-emerald-500/10 text-emerald-700 border-emerald-200 shrink-0">
+                      <Badge className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shrink-0">
                         {fmtDate(r.checkedInAt ?? 0)}
                       </Badge>
                     </li>

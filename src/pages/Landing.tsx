@@ -23,8 +23,8 @@ import { fmtDate } from "@/lib/format";
 
 function Stat({ value, label }: { value: string | number; label: string }) {
   return (
-    <div className="text-center">
-      <p className="font-display text-2xl font-bold text-primary tabular sm:text-3xl">{value}</p>
+    <div className="min-w-[40%] flex-1 sm:min-w-0">
+      <p className="font-display text-2xl font-bold tabular-nums tracking-tight">{value}</p>
       <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
     </div>
   );
@@ -141,8 +141,8 @@ export default function Landing() {
           </div>
         </motion.div>
 
-        {/* Real stat strip */}
-        <div className="mt-14 grid grid-cols-2 gap-6 rounded-2xl border border-border/70 bg-card/60 p-6 backdrop-blur sm:grid-cols-5">
+        {/* Real stat strip — a plain divided band, not a floating glass card */}
+        <div className="mt-12 flex flex-wrap gap-x-8 gap-y-6 border-y border-border py-5">
           <Stat value={stats?.events ?? "—"} label="Public events" />
           <Stat value={stats?.upcoming ?? "—"} label="Upcoming" />
           <Stat value={stats?.registrations ?? "—"} label="Registrations" />
@@ -196,16 +196,20 @@ export default function Landing() {
           <p className="mx-auto mt-2 max-w-xl text-center text-sm text-muted-foreground">
             One pipeline replaces the stack of forms, sheets, group chats and paper lists.
           </p>
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {["Event", "Registration", "Check-in", "Results", "Certificates"].map((label, i) => (
-              <div key={label} className="relative rounded-xl border bg-card p-4 text-center">
-                <span className="font-mono text-xs text-primary">0{i + 1}</span>
-                <p className="mt-1 font-display text-sm font-semibold">{label}</p>
-                {i < 4 && (
-                  <ArrowRight className="absolute -right-3 top-1/2 hidden size-4 -translate-y-1/2 text-primary/60 lg:block" />
-                )}
-              </div>
-            ))}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-x-3 gap-y-4">
+            {["Event", "Registration", "QR ticket", "Check-in", "Attendance", "Results", "Certificate", "Verify"].map(
+              (label, i, arr) => (
+                <span key={label} className="flex items-center gap-3">
+                  <span className="flex items-baseline gap-2 border-t-2 border-primary/50 pt-2.5 text-sm font-medium">
+                    <span className="font-mono text-[11px] text-muted-foreground">0{i + 1}</span>
+                    {label}
+                  </span>
+                  {i < arr.length - 1 && (
+                    <ArrowRight className="hidden size-3.5 text-muted-foreground/50 sm:block" aria-hidden="true" />
+                  )}
+                </span>
+              ),
+            )}
           </div>
           <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-muted-foreground">
             Publish an event with its own custom form → participants register and get a QR ticket →
@@ -220,13 +224,13 @@ export default function Landing() {
         <h2 className="text-center font-display text-2xl font-bold tracking-tight sm:text-3xl">
           Everything a club actually needs
         </h2>
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((f) => (
-            <div key={f.title} className="rounded-xl border bg-card p-5 transition-colors hover:border-primary/30">
-              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <f.icon className="size-4.5" />
+            <div key={f.title} className="border-t border-border pt-4">
+              <div className="flex items-center gap-2.5">
+                <f.icon className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                <h3 className="text-sm font-semibold">{f.title}</h3>
               </div>
-              <h3 className="mt-3 font-display text-base font-semibold">{f.title}</h3>
               <p className="mt-1.5 text-sm leading-6 text-muted-foreground">{f.body}</p>
             </div>
           ))}
@@ -256,8 +260,8 @@ export default function Landing() {
 
       {/* CTA */}
       <section className="mx-auto w-full max-w-6xl px-4 py-20">
-        <div className="ring-glow rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card p-10 text-center">
-          <QrCode className="mx-auto size-8 text-primary" />
+        <div className="rounded-lg border bg-card px-6 py-12 text-center sm:px-10">
+          <QrCode className="mx-auto size-7 text-primary" aria-hidden="true" />
           <h2 className="mt-4 font-display text-2xl font-bold tracking-tight sm:text-3xl">
             Run your next event on ClubFlow
           </h2>

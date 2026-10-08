@@ -17,8 +17,8 @@ const STATUS_TEXT: Record<string, string> = {
 };
 
 const BADGE_CLASS: Record<string, string> = {
-  confirmed: "bg-emerald-500/10 text-emerald-700 border-emerald-200",
-  pending: "bg-amber-500/10 text-amber-700 border-amber-200",
+  confirmed: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
+  pending: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
   cancelled: "bg-muted text-muted-foreground",
   rejected: "bg-rose-500/10 text-rose-700 border-rose-200",
 };
