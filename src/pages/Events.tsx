@@ -24,7 +24,6 @@ import {
   type FestDayKey,
 } from "@/lib/fest-schedule";
 import { cn } from "@/lib/utils";
-/** Badge copy for entries that are not competitive. */
 import {
   Select,
   SelectContent,
@@ -32,6 +31,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+
+/** Badge copy for entries that are not competitive. */
 const KIND_BADGE: Record<string, { label: string; className: string }> = {
   ceremony: { label: "Ceremony", className: "border-violet-500/30 bg-violet-500/10 text-violet-600 dark:text-violet-300" },
   break: { label: "Break", className: "border-border bg-muted text-muted-foreground" },
@@ -158,6 +160,7 @@ export default function Events() {
             />
           ))}
         </div>
+
         {!festReady && (
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <div className="flex w-full items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
@@ -182,7 +185,7 @@ export default function Events() {
               aria-label="Search events"
             />
           </div>
-            <Select value={category} onValueChange={setCategory}>
+          <Select value={category} onValueChange={setCategory}>
             <SelectTrigger className="h-9 w-full sm:w-44" aria-label="Filter by category">
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
