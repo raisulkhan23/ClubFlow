@@ -10,7 +10,6 @@ import {
   FEST_DAY_KEYS,
   FEST_SCHEDULE,
   type FestDayKey,
-  type ScheduleEntry,
   entryWindow,
   festDayLabel,
   festDayNumber,
@@ -19,7 +18,7 @@ import {
   scheduleSlug,
 } from "../lib/fest-schedule";
 
-// Re-export a wider ScheduleEntry so the rest of this module can use category/kind/day.
+// Wider ScheduleEntry used only by this seed module (category/kind/day/sessions).
 interface ScheduleEntry {
   day: FestDayKey;
   title: string;
@@ -145,9 +144,10 @@ const coverThemeFor = (category: string): number => {
  * writing an invalid category.
  */
 function categoryOf(entry: ScheduleEntry): Category {
-  const match = (CATEGORIES as readonly string[]).find((c) => c === entry.category);
+  const cat = entry.category ?? "Technology";
+  const match = (CATEGORIES as readonly string[]).find((c) => c === cat);
   if (!match) {
-    throw new Error(`Unknown category "${entry.category}" on schedule entry "${entry.title}"`);
+    throw new Error(`Unknown category "${cat}" on schedule entry "${entry.title}"`);
   }
   return match as Category;
 }
@@ -168,7 +168,7 @@ function describeEntry(entry: ScheduleEntry): { short: string; long: string } {
     `as part of the ${FEST.name} (day ${dayNo} of 3).` +
     (sessions.length > 1
       ? ` This competition runs across ${sessions.length} days: ` +
-        sessions.map((s) => `${festDayLabel(s.day ?? entry.day)} (${s.start} – ${s.end})`).join("; ") +
+        sessions.map((s) => `${festDayLabel((s as { day?: FestDayKey }).day ?? entry.day)} (${s.start} – ${s.end})`).join("; ") +
         "."
       : "");
   return { short, long };
@@ -181,7 +181,7 @@ function scheduleItems(entry: ScheduleEntry) {
     id: `s${i + 1}`,
     title:
       sessions.length > 1
-        ? `Day ${festDayNumber(s.day ?? entry.day)} of 3 · ${festDayLabel(s.day ?? entry.day)}`
+        ? `Day ${festDayNumber((s as { day?: FestDayKey }).day ?? entry.day)} of 3 · ${festDayLabel((s as { day?: FestDayKey }).day ?? entry.day)}`
         : "Scheduled session",
     time: `${s.start} – ${s.end}`,
   }));
@@ -267,6 +267,7 @@ async function seedDemoRegistrations(
     const target = entries.find(
       (e) => e.entry.title === plan.title && e.entry.day === firstDay && e.entry.kind === "competition",
     );
+    if (!target) continue;
     if (!target) continue;
 
     const existing = await ctx.db
@@ -367,18 +368,19 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
   let updated = 0;
   const upserted: Array<{ _id: Id<"events">; entry: ScheduleEntry; title: string }> = [];
 
-  for (const entry of Object.values(FEST_SCHEDULE)) {
+  for (const entry of Object.values(FEST_SCHEDULE) as ScheduleEntry[]) {
     const slug = slugFor(entry);
     const { startAt, endAt } = entryWindow(entry);
     const isCompetition = entry.kind === "competition";
     const { short, long } = describeEntry(entry);
+    const category = categoryOf(entry);
 
     const fields = {
       clubId,
       createdBy: organizerId,
       title: entry.title, // verbatim, including "(Preli.)" and "FC 26"
       slug,
-      category: categoryOf(entry),
+      category,
       shortDescription: short,
       description: long,
       // Ceremonies and the lunch break are publicly listed schedule blocks but
@@ -395,8 +397,8 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
       formFields: isCompetition ? DEMO_FORM_FIELDS : [],
       faq: [],
       schedule: scheduleItems(entry),
-      coverTheme: coverThemeFor(entry.category),
-      kind: entry.kind,
+      coverTheme: coverThemeFor(category),
+      kind: isCompetition ? ("competition" as const) : (entry.kind === "ceremony" ? ("ceremony" as const) : ("break" as const)),
       seriesKey: seriesKeyOf(entry.title),
       festKey: FEST.key,
       updatedAt: now,

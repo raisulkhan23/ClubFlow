@@ -73,14 +73,14 @@ export default function Events() {
     for (const e of events) {
       if (!e.festKey) continue;
       let found = false;
-      for (const s of Object.values(FEST_SCHEDULE)) {
+      for (const s of Object.values(FEST_SCHEDULE) as ScheduleEntry[]) {
         if (s.title === e.title && festDayKeyOf(entryWindow(s).startAt) === festDayKeyOf(e.startAt)) {
           found = true;
           break;
         }
       }
       if (!found) continue;
-      const n = seriesSessions(e.title).length;
+      const n = seriesSessions(e.title as ScheduleEntry["title"]).length;
       if (n > 1) m.set(e.slug, n);
     }
     return m;
@@ -154,7 +154,8 @@ export default function Events() {
             label="All days"
             sub="8–10 Oct"
             count={Object.values(perDayCounts).reduce((s, n) => s + n, 0)}
-          />              {FEST_DAY_KEYS.map((key) => (
+          />
+          {FEST_DAY_KEYS.map((key) => (
             <DayChip
               key={key}
               active={day === key}
@@ -252,7 +253,7 @@ export default function Events() {
                 <section key={dayKey}>
                   <div className="flex items-baseline justify-between gap-3 border-b pb-2">
                     <h2 className="font-display text-sm font-semibold tracking-tight">
-                      {isFestDay ? `Day ${festDayNumber(dayKey)} · ${festDayLabel(dayKey)}` : festDayLabel(dayKey)}
+                      {isFestDay ? `Day ${festDayNumber(dayKey as FestDayKey)} · ${festDayLabel(dayKey as FestDayKey)}` : festDayLabel(dayKey as FestDayKey)}
                     </h2>
                     <span className="shrink-0 text-xs text-muted-foreground tabular">
                       {entries.length} session{entries.length === 1 ? "" : "s"}
@@ -261,7 +262,7 @@ export default function Events() {
 
                   <ul className="divide-y divide-border">
                     {entries.map((e) => {
-                                          const series = e.festKey ? seriesSessions(e.title as ScheduleEntry["title"]).length : 0;
+                      const series = e.festKey ? seriesSessions(e.title as ScheduleEntry["title"]).length : 0;
                       const kindBadge = KIND_BADGE[e.kind ?? ""];
                       const seatsLeft = e.capacity - e.confirmedCount;
                       return (
@@ -331,7 +332,9 @@ export default function Events() {
               );
             })}
           </div>
-        )}              <p className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
+        )}
+
+        <p className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
           <CalendarDays className="size-3.5" aria-hidden="true" />
           {FEST.name} · {FEST.scheduleTitle} · times shown in {FEST.timeZone}
         </p>
