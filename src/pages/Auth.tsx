@@ -137,7 +137,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               <span className="text-gradient-lime">from one place.</span>
             </h1>
             <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-              Sign in with email to keep your registrations safe across devices — or jump straight into a demo to see ClubFlow from any role.
+              Sign in with email to keep your registrations safe across devices. Demo logins for every role sit just under the sign-in card.
             </p>
 
             {!festReady && (
@@ -149,30 +149,6 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               </div>
             )}
 
-            <div className="mt-4 rounded-xl border bg-card/60 p-4 backdrop-blur">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Try the demo · no signup needed
-              </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                {DEMO_ROLES.map((d) => (
-                  <button
-                    key={d.role}
-                    onClick={() => void handleDemoLogin(d.role)}
-                    disabled={demoBusy !== null || isLoading}
-                    className="group rounded-lg border p-3 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:opacity-60"
-                  >
-                    <div className="flex items-center gap-2">
-                      <d.icon className="size-4 text-primary" />
-                      <span className="text-sm font-semibold">
-                        {demoBusy === d.role ? "Signing in…" : d.label}
-                      </span>
-                      {demoBusy === d.role && <Loader2 className="ml-auto size-3.5 animate-spin text-primary" />}
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{d.description}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Right: email OTP card */}
@@ -267,6 +243,25 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
                 </form>
               </>
             )}
+            <div className="border-t px-6 pt-4 text-center">
+              <p className="text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+                Try a demo · no signup needed
+              </p>
+              <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+                {DEMO_ROLES.map((d) => (
+                  <button
+                    key={d.role}
+                    onClick={() => void handleDemoLogin(d.role)}
+                    disabled={demoBusy !== null || isLoading}
+                    title={d.description}
+                    className="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors hover:border-primary/40 hover:bg-primary/5 disabled:opacity-60"
+                  >
+                    <d.icon className="size-3 text-primary" />
+                    {demoBusy === d.role ? "Signing in…" : d.label.replace(" Demo", "")}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="rounded-b-lg border-t bg-muted px-6 py-4 text-center text-xs text-muted-foreground">
               Secured by{" "}
               <a
