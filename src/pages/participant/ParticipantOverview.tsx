@@ -37,23 +37,24 @@ export default function ParticipantOverview() {
         </div>
       ) : (
         <>
-        <div className="mt-6">
-          <MetricStrip columns={3}>
-            <Metric label="Active" value={data.totalRegistrations} hint="registrations" />
-            <Metric label="Certificates" value={data.certificates} hint="available" />
-            <Metric
-              label="Unread"
-              value={data.unread}
-              hint="notifications"
-              tone={data.unread > 0 ? "primary" : "default"}
-            />
-          </MetricStrip>
-        </div>
+          <div className="mt-6">
+            <MetricStrip columns={3}>
+              <Metric label="Active" value={data.totalRegistrations} hint="registrations" />
+              <Metric label="Certificates" value={data.certificates} hint="available" />
+              <Metric
+                label="Unread"
+                value={data.unread}
+                hint="notifications"
+                tone={data.unread > 0 ? "primary" : "default"}
+              />
+            </MetricStrip>
+          </div>
 
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
             {/* Upcoming */}
-            <section>                  <h2 className="font-display text-sm font-semibold tracking-tight">Upcoming registrations</h2>
-                  <div className="mt-3 space-y-2">
+            <section>
+              <h2 className="font-display text-sm font-semibold tracking-tight">Upcoming registrations</h2>
+              <div className="mt-3 space-y-2">
                 {data.upcoming.length === 0 && (
                   <EmptyState
                     icon={<CalendarDays />}
@@ -88,8 +89,9 @@ export default function ParticipantOverview() {
             </section>
 
             {/* Announcements */}
-            <section>                  <h2 className="font-display text-sm font-semibold tracking-tight">Announcements</h2>
-                  <div className="mt-3 space-y-2">
+            <section>
+              <h2 className="font-display text-sm font-semibold tracking-tight">Announcements</h2>
+              <div className="mt-3 space-y-2">
                 {data.announcements.length === 0 && (
                   <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
                     Announcements from your events will appear here.

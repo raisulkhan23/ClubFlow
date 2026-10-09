@@ -16,6 +16,180 @@ import { COVER_THEMES } from "@/lib/event-state";
 
 export type AppRole = "super_admin" | "organizer" | "volunteer" | "participant";
 
+/** Smallest UI primitives shared by the participant dashboard and fest pages. */
+export function CoverArt({
+  theme,
+  title,
+  children,
+  className,
+}: {
+  theme?: number;
+  title?: string;
+  children?: ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-xl bg-muted/40 text-white",
+        className ?? "",
+      )}
+    >
+      {theme != null && (
+        <div
+          className="pointer-events-none absolute inset-0 opacity-35"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(0,0,0,0.35), rgba(0,0,0,0.25)), " + COVER_THEMES[theme % COVER_THEMES.length],
+          }}
+        />
+      )}
+      {children ? (
+        <div className="relative z-10 flex h-full items-end p-5 sm:p-8">{children}</div>
+      ) : (
+        <div className="relative z-10 flex h-full items-end p-4">
+          {title && (
+            <h3 className="max-w-full overflow-hidden text-lg font-semibold leading-tight">
+              {title}
+            </h3>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+}: {
+  icon: ReactNode;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-dashed p-6 text-center">
+      {icon && (
+        <div className="mx-auto mb-3 flex size-10 items-center justify-center rounded-full bg-muted">
+          {icon}
+        </div>
+      )}
+      <p className="text-sm font-semibold">{title}</p>
+      {description && (
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      )}
+      {action && <div className="mt-4">{action}</div>}
+    </div>
+  );
+}
+
+export function PageHeader({
+  eyebrow,
+  title,
+  description,
+  actions,
+}: {
+  eyebrow?: string;
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      {eyebrow && (
+        <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          {eyebrow}
+        </p>
+      )}
+      <h1 className="font-display text-2xl font-bold tracking-tight">{title}</h1>
+      {description && (
+        <p className="max-w-xl text-sm text-muted-foreground">{description}</p>
+      )}
+      {actions && <div className="mt-3">{actions}</div>}
+    </div>
+  );
+}
+
+export function StatusBadge({
+  status,
+  dot = false,
+}: {
+  status?: string;
+  dot?: boolean;
+}) {
+  const map: Record<string, { label: string; className: string }> = {
+    open: { label: "Open", className: "border-primary/30 bg-primary/10 text-primary" },
+    almost_full: { label: "Almost full", className: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
+    full: { label: "Full", className: "border-border bg-muted text-muted-foreground" },
+    registration_closed: { label: "Registration closed", className: "border-border bg-muted text-muted-foreground" },
+    live: { label: "Happening now", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
+    completed: { label: "Completed", className: "border-border bg-muted text-muted-foreground" },
+    archived: { label: "Archived", className: "border-border bg-muted text-muted-foreground" },
+    draft: { label: "Draft", className: "border-border bg-muted text-muted-foreground" },
+    pending: { label: "Pending", className: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
+    confirmed: { label: "Confirmed", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
+    cancelled: { label: "Cancelled", className: "border-destructive/30 bg-destructive/10 text-destructive" },
+    rejected: { label: "Rejected", className: "border-destructive/30 bg-destructive/10 text-destructive" },
+    done: { label: "Done", className: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300" },
+    in_progress: { label: "In progress", className: "border-primary/30 bg-primary/10 text-primary" },
+    todo: { label: "To do", className: "border-border bg-muted text-muted-foreground" },
+    urgent: { label: "Urgent", className: "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300" },
+    important: { label: "Important", className: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300" },
+    normal: { label: "Normal", className: "border-border bg-muted text-muted-foreground" },
+    participant: { label: "Participant", className: "border-border bg-muted text-muted-foreground" },
+  };
+  const entry = status != null ? map[status] : null;
+  if (!entry) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium",
+        entry.className,
+      )}
+    >
+      {dot && <span className="mr-1 h-1.5 w-1.5 rounded-full bg-current opacity-60" />}
+      {entry.label}
+    </span>
+  );
+}
+
+export function Metric({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: string | number;
+  hint: string;
+  tone?: "primary" | "default";
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <p className="font-display text-2xl font-bold tabular-nums">{value}</p>
+      <p className="text-xs text-muted-foreground">
+        {label} {hint && <span className="text-muted-foreground/70">· {hint}</span>}
+      </p>
+    </div>
+  );
+}
+
+export function MetricStrip({ columns, children }: { columns?: number; children?: ReactNode }) {
+  return (
+    <div
+      className={cn(
+        "grid gap-4 rounded-xl border bg-card p-4",
+        columns == null ? "grid-cols-1" : `grid-cols-1 sm:grid-cols-${columns}`,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 export const ROLE_LABEL: Record<AppRole, string> = {
   super_admin: "Super Admin",
   organizer: "Organizer",
@@ -174,12 +348,12 @@ export function StatusBadge({
   className,
   dot,
 }: {
-  status: string;
+  status?: string;
   label?: string;
   className?: string;
   dot?: boolean;
 }) {
-  const style = BADGE_STYLES[status] ?? "border-border bg-muted text-muted-foreground";
+  const style = BADGE_STYLES[status ?? ""] ?? "border-border bg-muted text-muted-foreground";
   return (
     <span
       className={cn(
@@ -189,7 +363,7 @@ export function StatusBadge({
       )}
     >
       {dot && <span className="size-1.5 rounded-full bg-current" />}
-      {label ?? BADGE_LABEL[status] ?? status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+      {label ?? BADGE_LABEL[status ?? ""] ?? status?.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) ?? status ?? ""}
     </span>
   );
 }
@@ -200,29 +374,40 @@ export function CoverArt({
   className,
   children,
 }: {
-  theme: number;
+  theme?: number;
   title?: string;
   className?: string;
   children?: ReactNode;
 }) {
-  const t = COVER_THEMES[theme % COVER_THEMES.length] ?? COVER_THEMES[0];
+  const t =
+    theme != null
+      ? COVER_THEMES[theme % COVER_THEMES.length] ?? COVER_THEMES[0]
+      : null;
   return (
     <div
       className={cn("relative overflow-hidden", className)}
-      style={{ background: `linear-gradient(130deg, ${t.from} 0%, ${t.to} 90%)` }}
+      style={
+        t
+          ? { background: `linear-gradient(130deg, ${t.from} 0%, ${t.to} 90%)` }
+          : undefined
+      }
     >
-      <div
-        className="absolute inset-0 opacity-[0.16]"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.35) 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
-        }}
-      />
-      <div
-        className="absolute -right-10 -top-16 size-48 rounded-full opacity-25 blur-2xl"
-        style={{ background: t.accent }}
-      />
+      {t && (
+        <div
+          className="absolute inset-0 opacity-[0.16]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, rgba(255,255,255,.35) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,.35) 1px, transparent 1px)",
+            backgroundSize: "28px 28px",
+          }}
+        />
+      )}
+      {t && (
+        <div
+          className="absolute -right-10 -top-16 size-48 rounded-full opacity-25 blur-2xl"
+          style={{ background: t.accent }}
+        />
+      )}
       {title && (
         <span className="absolute bottom-3 left-4 font-display text-5xl font-bold text-white/15 select-none">
           {title.slice(0, 1).toUpperCase()}

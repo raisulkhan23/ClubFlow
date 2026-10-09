@@ -56,11 +56,18 @@ export default function Events() {
     limit: 200,
   });
 
-  /** How many stored sessions each fest competition has, from the official sheet. */
+  /** How many official sessions each fest competition has, taken only from the
+   * authoritative schedule sheet. This intentionally does not read DB titles for
+   * the "runs N days" chip, because the displayed schedule must stay faithful even
+   * if legacy rows drift from the official sheet. */
   const seriesSize = useMemo(() => {
     const m = new Map<string, number>();
-    for (const e of events ?? []) {
+    if (!events) return m;
+    for (const e of events) {
       if (!e.festKey) continue;
+      if (!FEST_SCHEDULE.some((s) => s.title === e.title && festDayKeyOf(s.startAt) === festDayKeyOf(e.startAt))) {
+        continue;
+      }
       const n = seriesSessions(e.title).length;
       if (n > 1) m.set(e.slug, n);
     }

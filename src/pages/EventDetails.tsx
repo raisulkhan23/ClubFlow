@@ -8,7 +8,12 @@ import { CalendarDays, Clock, MapPin, Megaphone, Trophy, Users } from "lucide-re
 import { Link, useParams } from "react-router";
 import { useState } from "react";
 import { countdown, fmtDate, fmtDateTime, fmtTimeRange } from "@/lib/format";
-import { FEST, festDayLabel, festDayNumber } from "@/lib/fest-schedule";
+import {
+  FEST,
+  dhakaDayOf,
+  festDayLabel,
+  festDayNumber,
+} from "@/lib/fest-schedule";
 
 /** Medal styling for the top three, text-only (no emoji as interface icons). */
 const POSITION_STYLE = [

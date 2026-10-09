@@ -300,6 +300,16 @@ export function festDayKeyOf(ts: number): FestDayKey | null {
   return FEST_DAY_KEYS.includes(key as FestDayKey) ? (key as FestDayKey) : null;
 }
 
+/** The Dhaka calendar day an instant falls on, as a `YYYY-MM-DD` string.
+ *
+ * Same computation as `dhakaDayKey`, exported so the event detail page can show
+ * the authoritative fest day label without re-deriving it from the browser's
+ * local date.
+ */
+export function dhakaDayOf(ts: number): string {
+  return dhakaDayKey(ts);
+}
+
 /** Lifecycle phase derived from real times — never stored, so it cannot go stale. */
 export type SessionPhase = "upcoming" | "live" | "finished";
 export function sessionPhase(startAt: number, endAt: number, now: number = Date.now()): SessionPhase {
@@ -309,6 +319,14 @@ export function sessionPhase(startAt: number, endAt: number, now: number = Date.
 }
 
 /** Fixture counts, used by the seeder's self-check. */
+export const EXPECTED_ENTRY_COUNT = FEST_SCHEDULE.length;
+export const EXPECTED_ENTRIES_PER_DAY: Record<FestDayKey, number> = {
+  "2026-10-08": FEST_SCHEDULE.filter((e) => e.day === "2026-10-08").length,
+  "2026-10-09": FEST_SCHEDULE.filter((e) => e.day === "2026-10-09").length,
+  "2026-10-10": FEST_SCHEDULE.filter((e) => e.day === "2026-10-10").length,
+};
+
+// ── Fixture counts, used by the seeder's self-check. ──────────────────────────
 export const EXPECTED_ENTRY_COUNT = FEST_SCHEDULE.length;
 export const EXPECTED_ENTRIES_PER_DAY: Record<FestDayKey, number> = {
   "2026-10-08": FEST_SCHEDULE.filter((e) => e.day === "2026-10-08").length,
