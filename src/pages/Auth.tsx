@@ -17,7 +17,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Logo } from "@/components/Logo";
-import { api } from "@/convex/_generated/api";
 import { useQuery } from "convex/react";
 import { ArrowRight, BadgeCheck, CalendarCheck2, ClipboardList, Loader2, Mail, ShieldCheck } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";

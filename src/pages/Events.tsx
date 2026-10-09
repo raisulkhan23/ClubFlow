@@ -3,23 +3,18 @@ import { api } from "@/convex/_generated/api";
 import { CATEGORIES } from "@/convex/schema";
 import { PageHeader, StatusBadge, EmptyState } from "@/components/RequireRole";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
-import { CalendarDays, MapPin, Search, Users } from "lucide-react";
+import { CalendarDays, MapPin, Search, Users, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router";
 import { fmtDayChip, fmtTimeRange } from "@/lib/format";
 import {
   FEST,
   FEST_DAY_KEYS,
+  FEST_SCHEDULE,
+  entryWindow,
   dhakaDayKey,
   dhakaTime,
   festDayKeyOf,
@@ -29,8 +24,14 @@ import {
   type FestDayKey,
 } from "@/lib/fest-schedule";
 import { cn } from "@/lib/utils";
-
 /** Badge copy for entries that are not competitive. */
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 const KIND_BADGE: Record<string, { label: string; className: string }> = {
   ceremony: { label: "Ceremony", className: "border-violet-500/30 bg-violet-500/10 text-violet-600 dark:text-violet-300" },
   break: { label: "Break", className: "border-border bg-muted text-muted-foreground" },
@@ -68,7 +69,7 @@ export default function Events() {
     if (!events) return m;
     for (const e of events) {
       if (!e.festKey) continue;
-      if (!FEST_SCHEDULE.some((s) => s.title === e.title && festDayKeyOf(s.startAt) === festDayKeyOf(e.startAt))) {
+      if (!FEST_SCHEDULE.some((s) => s.title === e.title && festDayKeyOf(entryWindow(s).startAt) === festDayKeyOf(e.startAt))) {
         continue;
       }
       const n = seriesSessions(e.title).length;
@@ -157,7 +158,6 @@ export default function Events() {
             />
           ))}
         </div>
-
         {!festReady && (
           <div className="mt-4 flex flex-col gap-2 sm:flex-row">
             <div className="flex w-full items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
@@ -182,9 +182,9 @@ export default function Events() {
               aria-label="Search events"
             />
           </div>
-          <Select value={category} onValueChange={setCategory}>
+            <Select value={category} onValueChange={setCategory}>
             <SelectTrigger className="h-9 w-full sm:w-44" aria-label="Filter by category">
-              <SelectValue />
+              <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All categories</SelectItem>
@@ -197,7 +197,7 @@ export default function Events() {
           </Select>
           <Select value={sort} onValueChange={setSort}>
             <SelectTrigger className="h-9 w-full sm:w-40" aria-label="Sort events">
-              <SelectValue />
+              <SelectValue placeholder="Soonest first" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="upcoming">Soonest first</SelectItem>

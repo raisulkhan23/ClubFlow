@@ -325,11 +325,3 @@ export const EXPECTED_ENTRIES_PER_DAY: Record<FestDayKey, number> = {
   "2026-10-09": FEST_SCHEDULE.filter((e) => e.day === "2026-10-09").length,
   "2026-10-10": FEST_SCHEDULE.filter((e) => e.day === "2026-10-10").length,
 };
-
-// ── Fixture counts, used by the seeder's self-check. ──────────────────────────
-export const EXPECTED_ENTRY_COUNT = FEST_SCHEDULE.length;
-export const EXPECTED_ENTRIES_PER_DAY: Record<FestDayKey, number> = {
-  "2026-10-08": FEST_SCHEDULE.filter((e) => e.day === "2026-10-08").length,
-  "2026-10-09": FEST_SCHEDULE.filter((e) => e.day === "2026-10-09").length,
-  "2026-10-10": FEST_SCHEDULE.filter((e) => e.day === "2026-10-10").length,
-};
