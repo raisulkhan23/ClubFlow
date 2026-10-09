@@ -10,6 +10,8 @@ import { useState } from "react";
 import { countdown, fmtDate, fmtDateTime, fmtTimeRange } from "@/lib/format";
 import {
   FEST,
+  FEST_DAY_KEYS,
+  type FestDayKey,
   dhakaDayOf,
   festDayLabel,
   festDayNumber,
@@ -75,7 +77,7 @@ export default function EventDetails() {
   const isCompetition = (event.kind ?? "competition") === "competition";
   const isFestEntry = Boolean(event.festKey);
   const sessions = series?.sessions ?? [];
-  const dayNo = isFestEntry ? festDayNumber(dhakaDayOf(event.startAt) as Parameters<typeof festDayNumber>[0]) : 0;
+  const dayNo = isFestEntry ? festDayNumber(dhakaDayOf(event.startAt) as unknown as Parameters<typeof festDayNumber>[0]) : 0;
 
   const cta = !isCompetition ? (
     <p className="text-sm text-muted-foreground">
@@ -178,7 +180,7 @@ export default function EventDetails() {
                         }`}
                       >
                         <span className="font-medium">Day {s.dayNo}</span>
-                        <span className="text-muted-foreground">{festDayLabel(s.dayKey)}</span>
+                        <span className="text-muted-foreground">{festDayLabel((s.dayKey ?? FEST_DAY_KEYS[0]) as FestDayKey)}</span>
                         <span className="ml-auto text-xs text-muted-foreground tabular">
                           {fmtTimeRange(s.startAt, s.endAt)}
                         </span>

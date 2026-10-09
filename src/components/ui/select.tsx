@@ -1,23 +1,24 @@
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
-import type { ComponentPropsWithoutRef } from "react"
 
 import { cn } from "@/lib/utils"
 
 function Select({
   className,
   ...props
-}: ComponentPropsWithoutRef<typeof SelectPrimitive.Root>) {
+}: React.ComponentProps<typeof SelectPrimitive.Root> & { className?: string }) {
+  const { className: _cls, ...rest } = props as Record<string, unknown>;
   return (
-    <SelectPrimitive.Root
+    <div
       data-slot="select"
       className={cn(
-        "relative flex text-sm input/input-md text-input bg-transparent ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
-        className
+        "relative flex text-sm input/input-md text-input bg-transparent",
+        className,
       )}
-      {...props}
-    />
+    >
+      <SelectPrimitive.Root {...(rest as React.ComponentProps<typeof SelectPrimitive.Root>)} />
+    </div>
   )
 }
 

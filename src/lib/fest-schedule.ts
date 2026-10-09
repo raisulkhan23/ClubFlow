@@ -1,10 +1,10 @@
 export const FEST = {
   key: "drmc-tech-carnival",
   name: "Tech Carnival",
-  clubName: "DRMC Tech Club",
+  clubName: "DRMC IT Club",
   institution: "Dhaka Residential Model College",
   scheduleTitle: "DRMC Tech Carnival 2025",
-  sponsor: "DRMC Tech Club",
+  sponsor: "DRMC IT Club",
   timeZone: "Asia/Dhaka",
 };
 

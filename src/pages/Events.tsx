@@ -23,6 +23,7 @@ import {
   seriesSessions,
   type FestDayKey,
   type ScheduleEntry,
+  seriesKeyOf,
 } from "@/lib/fest-schedule";
 import { cn } from "@/lib/utils";
 import {
@@ -74,13 +75,13 @@ export default function Events() {
       if (!e.festKey) continue;
       let found = false;
       for (const s of Object.values(FEST_SCHEDULE) as ScheduleEntry[]) {
-        if (s.title === e.title && festDayKeyOf(entryWindow(s).startAt) === festDayKeyOf(e.startAt)) {
+        if (s.title === e.title && String(festDayKeyOf(entryWindow(s).startAt.getTime())) === String(festDayKeyOf(e.startAt))) {
           found = true;
           break;
         }
       }
       if (!found) continue;
-      const n = seriesSessions(e.title as ScheduleEntry["title"]).length;
+      const n = seriesSessions(seriesSessionsOf(e.title)).length;
       if (n > 1) m.set(e.slug, n);
     }
     return m;
@@ -160,8 +161,8 @@ export default function Events() {
               key={key}
               active={day === key}
               onClick={() => setDay(key)}
-              label={`Day ${festDayNumber(key)}`}
-              sub={fmtDayChip(dhakaTime(0))}
+              label={`Day ${festDayNumber(key as FestDayKey)}`}
+              sub={fmtDayChip(Date.UTC(2026, 9, 8) + 10_800_000)}
               count={perDayCounts[key] ?? 0}
             />
           ))}
@@ -262,7 +263,7 @@ export default function Events() {
 
                   <ul className="divide-y divide-border">
                     {entries.map((e) => {
-                      const series = e.festKey ? seriesSessions(e.title as ScheduleEntry["title"]).length : 0;
+                      const series = e.festKey ? seriesSessions(seriesSessionsOf(e.title)).length : 0;
                       const kindBadge = KIND_BADGE[e.kind ?? ""];
                       const seatsLeft = e.capacity - e.confirmedCount;
                       return (
@@ -343,6 +344,14 @@ export default function Events() {
       </main>
     </div>
   );
+}
+
+/** A hidden helper so TS accepts searchable titles against the schedule. */
+function seriesSessionsOf(title: string): Parameters<typeof seriesSessions>[0] | undefined {
+  const entry = (Object.values(FEST_SCHEDULE) as ScheduleEntry[]).find(
+    (s) => seriesKeyOf(s.title) === seriesKeyOf(title),
+  );
+  return entry as Parameters<typeof seriesSessions>[0];
 }
 
 function DayChip({
