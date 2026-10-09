@@ -332,12 +332,14 @@ export default function Events() {
               );
             })}
           </div>
-        )}
-
-        <p className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
+        )}          <p className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
           <CalendarDays className="size-3.5" aria-hidden="true" />
           {FEST.name} · {FEST.scheduleTitle} · times shown in {FEST.timeZone}
         </p>
+        <p className="text-xs text-muted-foreground">[DEMO] Seeded organizer card — switch accounts or open your Profile from the workspace menu.</p>
+        <p className="text-xs text-muted-foreground">[DEMO] Seeded organizer card — switch accounts or open your Profile from the workspace menu.</p>
+        <p className="text-xs text-muted-foreground">[DEMO] Seeded organizer card — switch accounts or open your Profile from the workspace menu.</p>
+        <p className="mt-2 text-xs text-muted-foreground">[DEMO] Seeded organizer card — switch accounts or open your Profile from the workspace menu.</p>
       </main>
     </div>
   );
