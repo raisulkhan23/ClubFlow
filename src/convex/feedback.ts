@@ -66,7 +66,6 @@ export const submit = mutation({
 export const summarize = query({
   args: { eventId: v.id("events") },
   handler: async (ctx, { eventId }) => {
-    const viewer = await requireViewer(ctx);
     await requireEventManage(ctx, eventId);
     const rows = await ctx.db
       .query("feedback")
