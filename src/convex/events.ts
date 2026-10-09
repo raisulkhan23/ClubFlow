@@ -431,6 +431,8 @@ const eventInput = v.object({
   coverTheme: v.optional(v.number()),
   faq: v.optional(v.array(faqItem)),
   schedule: v.optional(v.array(scheduleItem)),
+  /** Parent festival — required by the organization → fest → event hierarchy. */
+  festId: v.optional(v.id("fests")),
 });
 /**
  * Derived from the validator rather than hand-written, so the event payload can

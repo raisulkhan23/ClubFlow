@@ -531,6 +531,9 @@ export const getEventRegistrationStats = query({
       cancelled: regs.filter((r) => r.status === "cancelled").length,
       rejected: regs.filter((r) => r.status === "rejected").length,
       checkedIn: confirmed.filter((r) => r.checkedInAt).length,
+      // Server-side timestamp of this read — lets the UI show an honest
+      // "last refreshed" time without calling impure APIs during render.
+      asOf: Date.now(),
     };
   },
 });

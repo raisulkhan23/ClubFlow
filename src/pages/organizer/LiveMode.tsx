@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
@@ -42,10 +42,6 @@ export default function LiveMode() {
     currentId ? { eventId: currentId } : "skip",
   );
   const activity = useQuery(api.dashboard.organizerOverview, {});
-  const [refreshedAt, setRefreshedAt] = useState<number | null>(null);
-  useEffect(() => {
-    setRefreshedAt(Date.now());
-  }, [eventId, stats?.checkedIn, stats?.confirmed]);
 
   const setStatus = useMutation(api.events.setEventStatus);
 
@@ -72,7 +68,7 @@ export default function LiveMode() {
         description="Big-format operational panel — updates arrive in real time via reactive subscriptions."
         actions={
           <Badge variant="outline" className="gap-1.5 border-emerald-500/30 text-xs text-emerald-600 dark:text-emerald-300">
-            <Activity className="size-3.5" /> Live · refreshed {refreshedAt === null ? "…" : fmtRelative(refreshedAt)}
+            <Activity className="size-3.5" /> Live · data as of {stats ? fmtRelative(stats.asOf) : "…"}
           </Badge>
         }
       />

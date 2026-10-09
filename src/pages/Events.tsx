@@ -131,6 +131,9 @@ export default function Events() {
           </Link>
           <div className="flex items-center gap-2">
             <Button asChild variant="ghost" size="sm">
+              <Link to="/fests">Festivals</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
               <Link to="/verify">Verify certificate</Link>
             </Button>
             <Button asChild size="sm">

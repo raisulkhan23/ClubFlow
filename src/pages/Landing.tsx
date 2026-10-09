@@ -92,6 +92,7 @@ export default function Landing() {
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
             <a href="#how" className="hover:text-foreground">How it works</a>
             <a href="#features" className="hover:text-foreground">Features</a>
+            <Link to="/fests" className="hover:text-foreground">Festivals</Link>
             <Link to="/events" className="hover:text-foreground">Events</Link>
             <Link to="/verify" className="hover:text-foreground">Verify certificate</Link>
           </nav>
@@ -100,7 +101,7 @@ export default function Landing() {
               <Link to={dashboardHref}>Organizer Dashboard</Link>
             </Button>
             <Button asChild size="sm">
-              <Link to="/events">Explore Events</Link>
+              <Link to="/fests">Explore Festivals</Link>
             </Button>
           </div>
         </div>
@@ -282,7 +283,7 @@ export default function Landing() {
             whole pipeline work end to end.
           </p>
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-            <Button asChild size="lg"><Link to="/events">Explore Events</Link></Button>
+            <Button asChild size="lg"><Link to="/fests">Explore Festivals</Link></Button>
             <Button asChild size="lg" variant="outline"><Link to="/auth">Try the demo</Link></Button>
           </div>
         </div>
@@ -294,6 +295,7 @@ export default function Landing() {
           <Logo markClass="size-6" />
           <p>An in-house event operations platform.</p>
           <div className="flex gap-4">
+            <Link to="/fests" className="hover:text-foreground">Festivals</Link>
             <Link to="/events" className="hover:text-foreground">Events</Link>
             <Link to="/verify" className="hover:text-foreground">Verify</Link>
             <Link to="/auth" className="hover:text-foreground">Sign in</Link>

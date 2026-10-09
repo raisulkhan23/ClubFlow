@@ -27,6 +27,9 @@ const POSITION_STYLE = [
 export default function EventDetails() {
   const { slug } = useParams<{ slug: string }>();
   const data = useQuery(api.events.getPublicBySlug, slug ? { slug } : "skip");
+  // Organization → Fest lineage for this event (fest is null on legacy rows).
+  const eventId = data?.event?._id;
+  const lineage = useQuery(api.fests.festForEvent, eventId ? { eventId } : "skip");
   // Every stored session of this competition. Declared before the early returns
   // so the hook order stays stable when the event is still loading.
   const seriesKey = data?.event?.seriesKey;
@@ -68,6 +71,8 @@ export default function EventDetails() {
 
   const { event, publishedResults, announcements, club } = data;
   const clubName = (club?.name ?? FEST.clubName) ?? FEST.clubName ?? "";
+  const orgName = lineage?.organizationName || clubName;
+  const parentFest = lineage?.fest ?? null;
   // Ceremonies and the lunch block carry no capacity, so never divide by it.
   const fillPct =
     event.capacity > 0
@@ -125,6 +130,21 @@ export default function EventDetails() {
         </div>
       </header>
 
+      {/* Rulebook breadcrumb: Organization / Fest / Event */}
+      <nav aria-label="Breadcrumb" className="mx-auto w-full max-w-4xl px-4 pt-4 text-xs text-muted-foreground">
+        <Link to="/" className="hover:text-foreground">{orgName}</Link>
+        <span className="mx-1.5">/</span>
+        <Link to="/fests" className="hover:text-foreground">Festivals</Link>
+        {parentFest && (
+          <>
+            <span className="mx-1.5">/</span>
+            <Link to={`/fests/${parentFest.slug}`} className="hover:text-foreground">{parentFest.name}</Link>
+          </>
+        )}
+        <span className="mx-1.5">/</span>
+        <span className="text-foreground">{event.title}</span>
+      </nav>
+
       {/* Banner */}
       <CoverArt theme={event.coverTheme} title={event.title} className="h-52 sm:h-64">
         <div className="flex h-full flex-col justify-end p-5 sm:p-8">
@@ -147,9 +167,11 @@ export default function EventDetails() {
           </div>
           <h1 className="mt-3 max-w-2xl font-display text-2xl font-bold text-white sm:text-4xl">{event.title}</h1>
           <p className="mt-1 text-sm text-white/70">
-            {isFestEntry
-              ? `${FEST.name} · Day ${dayNo} of 3`
-              : `Hosted by ${clubName ?? FEST.clubName}`}
+            {parentFest
+              ? `${parentFest.name} · ${orgName}`
+              : isFestEntry
+                ? `${FEST.name} · Day ${dayNo} of 3`
+                : `Hosted by ${clubName ?? FEST.clubName}`}
           </p>
         </div>
       </CoverArt>

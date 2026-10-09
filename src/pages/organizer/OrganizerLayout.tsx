@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   ListTodo,
   Megaphone,
+  PartyPopper,
   PieChart,
   Radio,
   ScanLine,
@@ -31,6 +32,7 @@ const groups: NavGroup[] = [
   {
     heading: "Event operations",
     items: [
+      { to: "/organizer/fests", label: "Festivals", icon: PartyPopper },
       { to: "/organizer/events", label: "Events", icon: CalendarDays },
       { to: "/organizer/participants", label: "Participants", icon: Users },
       { to: "/organizer/checkin", label: "Check-in", icon: ScanLine },

@@ -3,6 +3,7 @@ import { mutation, query } from "./_generated/server";
 import { requireViewer, roleOf } from "./helpers";
 import { roleValidator, ROLES } from "./schema";
 import { runSeed } from "./seed";
+import { ensureRulebookFestsForClub } from "./fests";
 
 const DEMO_NAMES: Record<string, string> = {
   [ROLES.SUPER_ADMIN]: "Platform Admin",
@@ -73,6 +74,12 @@ export const claimDemoRole = mutation({
           createdAt: Date.now(),
         });
       }
+    }
+
+    // Organizer/admin demo sessions must always show the rulebook hierarchy:
+    // Organization → Fest → Event, with the seeded events attached to a fest.
+    if ((role === ROLES.ORGANIZER || role === ROLES.SUPER_ADMIN) && club) {
+      await ensureRulebookFestsForClub(ctx, club._id, viewer.userId);
     }
 
     if (role === ROLES.PARTICIPANT) {

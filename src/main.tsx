@@ -40,6 +40,9 @@ const Volunteers = lazy(() => import("./pages/organizer/Volunteers.tsx"));
 const Analytics = lazy(() => import("./pages/organizer/Analytics.tsx"));
 const Settings = lazy(() => import("./pages/organizer/Settings.tsx"));
 const Resources = lazy(() => import("./pages/organizer/Resources.tsx"));
+const OrganizerFests = lazy(() => import("./pages/organizer/Fests.tsx"));
+const Fests = lazy(() => import("./pages/Fests.tsx"));
+const FestDetails = lazy(() => import("./pages/FestDetails.tsx"));
 const Feedback = lazy(() => import("./pages/organizer/Feedback.tsx"));
 const LiveMode = lazy(() => import("./pages/organizer/LiveMode.tsx"));
 const VolunteerLayout = lazy(() => import("./pages/volunteer/VolunteerLayout.tsx"));
@@ -153,6 +156,8 @@ createRoot(document.getElementById("root")!).render(
             <Routes>
               {/* Public */}
               <Route path="/" element={<Landing />} />
+              <Route path="/fests" element={<Fests />} />
+              <Route path="/fests/:slug" element={<FestDetails />} />
               <Route path="/events" element={<Events />} />
               <Route path="/events/:slug" element={<EventDetails />} />
               <Route
@@ -228,6 +233,7 @@ createRoot(document.getElementById("root")!).render(
                 }
               >
                 <Route path="/organizer" element={<OrganizerOverview />} />
+                <Route path="/organizer/fests" element={<OrganizerFests />} />
                 <Route path="/organizer/events" element={<OrganizerEvents />} />
                 <Route path="/organizer/events/new" element={<EventEditor />} />
                 <Route path="/organizer/events/:eventId" element={<EventEditor />} />

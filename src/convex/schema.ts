@@ -141,9 +141,37 @@ const schema = defineSchema(
       createdAt: v.number(),
     }).index("by_slug", ["slug"]),
 
+    // ── Rulebook hierarchy: Organization → Fest → Event → Registration ─────
+    // A "club" is the organization (e.g. DRMC IT Club). A fest belongs to the
+    // organization and contains many events; every event may point at its fest.
+    fests: defineTable({
+      clubId: v.id("clubs"),
+      name: v.string(),
+      slug: v.string(),
+      description: v.string(),
+      bannerTheme: v.number(),
+      venue: v.optional(v.string()),
+      startAt: v.number(),
+      endAt: v.number(),
+      status: v.union(v.literal("draft"), v.literal("published"), v.literal("archived")),
+      /** Official fest key used by the seeded schedule (e.g. drmc-tech-carnival). */
+      festKey: v.optional(v.string()),
+      /** True for rulebook demonstration rows so they are never mistaken for
+       *  verified official data. */
+      isDemo: v.boolean(),
+      createdBy: v.id("users"),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    })
+      .index("by_club", ["clubId"])
+      .index("by_slug", ["slug"])
+      .index("by_status", ["status"]),
+
     events: defineTable({
       clubId: v.id("clubs"),
       createdBy: v.id("users"),
+      /** Parent fest. Optional only for legacy rows; set on every new event. */
+      festId: v.optional(v.id("fests")),
       title: v.string(),
       slug: v.string(),
       category: categoryValidator,
@@ -188,6 +216,7 @@ const schema = defineSchema(
       .index("by_slug", ["slug"])
       .index("by_createdBy", ["createdBy"])
       .index("by_fest", ["festKey"])
+      .index("by_festId", ["festId"])
       .index("by_series", ["seriesKey"]),
 
     registrations: defineTable({
