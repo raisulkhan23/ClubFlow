@@ -16,11 +16,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft, CalendarDays, Copy, FileDown, MapPin, QrCode as QrIcon } from "lucide-react";
+import { ArrowLeft, CalendarDays, CalendarPlus, Copy, FileDown, MapPin, QrCode as QrIcon } from "lucide-react";
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import { fmtDate, fmtDateTime } from "@/lib/format";
+import { downloadIcs, icsForEvent } from "@/lib/ics";
 import { generateCertificatePdf } from "@/lib/certificate-pdf";
 
 export default function RegistrationDetail() {
@@ -191,7 +192,27 @@ export default function RegistrationDetail() {
                 {event.contactEmail}
               </a>
             </p>
-            <Button asChild variant="outline" size="sm" className="mt-3 w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-3 w-full"
+              onClick={() => {
+                downloadIcs(
+                  `${event.slug}.ics`,
+                  icsForEvent({
+                    uid: registration.registrationId,
+                    title: event.title,
+                    description: event.venue ? `Venue: ${event.venue}` : undefined,
+                    location: event.venue,
+                    startAt: event.startAt,
+                    endAt: event.endAt,
+                  }),
+                );
+              }}
+            >
+              <CalendarPlus className="size-4" /> Download calendar file (.ics)
+            </Button>
+            <Button asChild variant="outline" size="sm" className="mt-2 w-full">
               <Link to={`/events/${event.slug}`}>Event page</Link>
             </Button>
           </div>

@@ -38,6 +38,9 @@ const Tasks = lazy(() => import("./pages/organizer/Tasks.tsx"));
 const Volunteers = lazy(() => import("./pages/organizer/Volunteers.tsx"));
 const Analytics = lazy(() => import("./pages/organizer/Analytics.tsx"));
 const Settings = lazy(() => import("./pages/organizer/Settings.tsx"));
+const Resources = lazy(() => import("./pages/organizer/Resources.tsx"));
+const Feedback = lazy(() => import("./pages/organizer/Feedback.tsx"));
+const LiveMode = lazy(() => import("./pages/organizer/LiveMode.tsx"));
 const VolunteerLayout = lazy(() => import("./pages/volunteer/VolunteerLayout.tsx"));
 const VolunteerHome = lazy(() => import("./pages/volunteer/VolunteerHome.tsx"));
 const VolunteerCheckIn = lazy(() => import("./pages/volunteer/VolunteerCheckIn.tsx"));
@@ -233,6 +236,9 @@ createRoot(document.getElementById("root")!).render(
                 <Route path="/organizer/tasks" element={<Tasks />} />
                 <Route path="/organizer/volunteers" element={<Volunteers />} />
                 <Route path="/organizer/analytics" element={<Analytics />} />
+                <Route path="/organizer/resources" element={<Resources />} />
+                <Route path="/organizer/feedback" element={<Feedback />} />
+                <Route path="/organizer/live" element={<LiveMode />} />
                 <Route path="/organizer/settings" element={<Settings />} />
               </Route>
 

@@ -214,7 +214,7 @@ export default function Tasks() {
         <div className="space-y-3">
           {filtered
             .sort((a, b) => {
-              const rank = { done: 2, todo: 0, in_progress: 1 } as const;
+              const rank: Record<string, number> = { done: 2, blocked: 3, todo: 0, in_progress: 1 };
               return (rank[b.status] ?? 0) - (rank[a.status] ?? 0);
             })
             .map((task) => {

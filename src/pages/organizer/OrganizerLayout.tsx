@@ -4,14 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import { LogoDropdown } from "@/components/LogoDropdown";
 import {
+  Boxes,
   CalendarDays,
   Globe,
   LayoutDashboard,
   ListTodo,
   Megaphone,
   PieChart,
+  Radio,
   ScanLine,
   Settings,
+  Star,
   Trophy,
   UserCog,
   Users,
@@ -31,6 +34,7 @@ const groups: NavGroup[] = [
       { to: "/organizer/events", label: "Events", icon: CalendarDays },
       { to: "/organizer/participants", label: "Participants", icon: Users },
       { to: "/organizer/checkin", label: "Check-in", icon: ScanLine },
+      { to: "/organizer/live", label: "Live mode", icon: Radio },
     ],
   },
   {
@@ -45,6 +49,8 @@ const groups: NavGroup[] = [
     heading: "Team & insights",
     items: [
       { to: "/organizer/volunteers", label: "Volunteers", icon: UserCog },
+      { to: "/organizer/resources", label: "Resources", icon: Boxes },
+      { to: "/organizer/feedback", label: "Feedback", icon: Star },
       { to: "/organizer/analytics", label: "Analytics", icon: PieChart },
       { to: "/organizer/settings", label: "Settings", icon: Settings },
     ],

@@ -249,8 +249,9 @@ const schema = defineSchema(
       description: v.optional(v.string()),
       assigneeId: v.optional(v.id("users")),
       deadline: v.optional(v.number()),
-      priority: v.union(v.literal("low"), v.literal("medium"), v.literal("high")),
-      status: v.union(v.literal("todo"), v.literal("in_progress"), v.literal("done")),
+      priority: v.union(v.literal("low"), v.literal("medium"), v.literal("high"), v.literal("urgent")),
+      status: v.union(v.literal("todo"), v.literal("in_progress"), v.literal("blocked"), v.literal("done")),
+      blockedBy: v.optional(v.array(v.id("tasks"))),
       createdBy: v.id("users"),
       createdAt: v.number(),
       updatedAt: v.number(),
@@ -332,6 +333,70 @@ const schema = defineSchema(
       key: v.string(),
       value: v.optional(v.string()),
     }).index("by_key", ["key"]),
+
+    // ── ClubFlow 3.0 ─────────────────────────────────────────────────────────
+    // Catalog of usable campus facilities/equipment, owned by a club.
+    resources: defineTable({
+      clubId: v.id("clubs"),
+      name: v.string(),
+      category: v.union(
+        v.literal("venue"),
+        v.literal("equipment"),
+        v.literal("furniture"),
+        v.literal("tech"),
+      ),
+      location: v.optional(v.string()),
+      quantity: v.number(), // countable stock; 1 for exclusive venues
+      exclusive: v.boolean(), // true = cannot double-book the same slot
+      condition: v.optional(v.string()),
+      notes: v.optional(v.string()),
+      active: v.boolean(),
+      createdBy: v.id("users"),
+      createdAt: v.number(),
+    })
+      .index("by_club", ["clubId"]),
+
+    reservations: defineTable({
+      resourceId: v.id("resources"),
+      eventId: v.optional(v.id("events")),
+      clubId: v.id("clubs"),
+      quantity: v.number(),
+      startAt: v.number(),
+      endAt: v.number(),
+      reservedBy: v.id("users"),
+      status: v.union(
+        v.literal("confirmed"),
+        v.literal("pending"),
+        v.literal("returned"),
+        v.literal("cancelled"),
+      ),
+      note: v.optional(v.string()),
+      createdAt: v.number(),
+    })
+      .index("by_resource", ["resourceId"])
+      .index("by_event", ["eventId"]),
+
+    // Internal notes on tasks (organizer-visible only).
+    taskComments: defineTable({
+      taskId: v.id("tasks"),
+      authorId: v.id("users"),
+      authorName: v.string(),
+      body: v.string(),
+      createdAt: v.number(),
+    }).index("by_task", ["taskId"]),
+
+    // Post-event feedback. When anonymous, userId is deliberately NOT stored.
+    feedback: defineTable({
+      eventId: v.id("events"),
+      clubId: v.id("clubs"),
+      userId: v.optional(v.id("users")), // deliberately absent when anonymous
+      rating: v.number(),
+      venueRating: v.optional(v.number()),
+      orgRating: v.optional(v.number()),
+      suggestion: v.optional(v.string()),
+      createdAt: v.number(),
+    })
+      .index("by_event", ["eventId"]),
   },
   {
     schemaValidation: false,
