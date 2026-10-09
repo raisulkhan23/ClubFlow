@@ -1,4 +1,7 @@
 import { useAuth } from "@/hooks/use-auth";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Loader2, ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
+import { useState } from "react";
 import { Link, Navigate, useLocation } from "react-router";
 import { cn } from "@/lib/utils";
 import { COVER_THEMES } from "@/lib/event-state";
@@ -37,6 +41,9 @@ export function RequireRole({
 }) {
   const { isLoading, isAuthenticated, user } = useAuth();
   const location = useLocation();
+  const hasSuperAdmin = useQuery(api.accounts.hasSuperAdmin);
+  const becomeFirstSuperAdmin = useMutation(api.accounts.becomeFirstSuperAdmin);
+  const [claiming, setClaiming] = useState(false);
 
   if (isLoading) {
     return (
@@ -52,6 +59,8 @@ export function RequireRole({
   }
 
   const role = (user?.role ?? "participant") as AppRole;
+  const canClaimAdmin =
+    allowed.includes("super_admin") && hasSuperAdmin === false && role !== "super_admin";
   if (allowed.length > 0 && !allowed.includes(role)) {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background p-6">
@@ -73,7 +82,26 @@ export function RequireRole({
             Head to your own workspace — everything there is tuned to your role.
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
-            <Button asChild className="w-full">
+            {canClaimAdmin && (
+              <Button
+                className="w-full"
+                disabled={claiming}
+                onClick={async () => {
+                  setClaiming(true);
+                  try {
+                    await becomeFirstSuperAdmin({});
+                    toast.success("You are now the platform super admin.");
+                    window.location.assign("/admin");
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Could not claim admin.");
+                    setClaiming(false);
+                  }
+                }}
+              >
+                {claiming ? "Claiming…" : "Claim super admin (platform has none yet)"}
+              </Button>
+            )}
+            <Button asChild className="w-full" variant={canClaimAdmin ? "outline" : "default"}>
               <Link to={roleHome(role)}>Go to my workspace</Link>
             </Button>
           </CardFooter>

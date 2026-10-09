@@ -1,5 +1,5 @@
 import { ConvexError, v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { requireViewer, roleOf } from "./helpers";
 import { roleValidator, ROLES } from "./schema";
 import { runSeed } from "./seed";
@@ -87,6 +87,37 @@ export const claimDemoRole = mutation({
     }
 
     return { role };
+  },
+});
+
+/** Public check used by the access-denied screen: does any super admin exist? */
+export const hasSuperAdmin = query({
+  args: {},
+  handler: async (ctx) => {
+    const admins = await ctx.db.query("users").collect();
+    return admins.some((u) => u.role === "super_admin");
+  },
+});
+
+/**
+ * One-time bootstrap: the very first account on the platform may claim
+ * super admin — but only while zero super admins exist. Once one exists,
+ * promotion must be done by that admin via setUserRole.
+ */
+export const becomeFirstSuperAdmin = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const viewer = await requireViewer(ctx);
+    const admins = (await ctx.db.query("users").collect()).filter(
+      (u) => u.role === "super_admin",
+    );
+    if (admins.length > 0) {
+      throw new ConvexError(
+        "A super admin already exists. Ask them to promote you from the Admin console.",
+      );
+    }
+    await ctx.db.patch(viewer.userId, { role: "super_admin" });
+    return { ok: true };
   },
 });
 
