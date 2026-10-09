@@ -97,12 +97,17 @@ export const claimDemoRole = mutation({
   },
 });
 
-/** Public check used by the access-denied screen: does any super admin exist? */
+/**
+ * Public check used by the access-denied screen: does any super admin exist?
+ * Anonymous demo sessions are ignored — they are throwaway guests nobody can
+ * sign back into, so letting one count as the platform's only admin would
+ * permanently lock every real account out of the bootstrap path.
+ */
 export const hasSuperAdmin = query({
   args: {},
   handler: async (ctx) => {
     const admins = await ctx.db.query("users").collect();
-    return admins.some((u) => u.role === "super_admin");
+    return admins.some((u) => u.role === "super_admin" && !u.isAnonymous);
   },
 });
 
@@ -115,8 +120,9 @@ export const becomeFirstSuperAdmin = mutation({
   args: {},
   handler: async (ctx) => {
     const viewer = await requireViewer(ctx);
+    // Only real accounts count here too — see hasSuperAdmin above.
     const admins = (await ctx.db.query("users").collect()).filter(
-      (u) => u.role === "super_admin",
+      (u) => u.role === "super_admin" && !u.isAnonymous,
     );
     if (admins.length > 0) {
       throw new ConvexError(

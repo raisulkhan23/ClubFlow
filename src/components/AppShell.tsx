@@ -14,7 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ROLE_LABEL, type AppRole } from "@/components/RequireRole";
+import { roleLabel } from "@/components/RequireRole";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router";
@@ -87,7 +87,7 @@ function ThemeToggle() {
 function UserMenu() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
-  const role = (user?.role ?? "participant") as AppRole;
+  const role = user?.role;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -104,7 +104,7 @@ function UserMenu() {
           <p className="truncate text-sm font-medium">{user?.name ?? "Signed in"}</p>
           <p className="truncate text-xs font-normal text-muted-foreground">{user?.email ?? "Demo session"}</p>
           <Badge variant="outline" className="mt-1.5 border-primary/30 text-primary">
-            {ROLE_LABEL[role]}
+            {roleLabel(role)}
           </Badge>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

@@ -1,7 +1,7 @@
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ParticipantShell } from "./ParticipantShell";
-import { PageHeader, ROLE_LABEL, type AppRole } from "@/components/RequireRole";
+import { PageHeader, roleLabel } from "@/components/RequireRole";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,7 +56,7 @@ export default function Profile() {
         </div>
         <div className="flex items-center justify-between">
           <Badge variant="outline" className="border-primary/30 text-primary">
-            Role: {ROLE_LABEL[(user?.role ?? "participant") as AppRole]}
+            Role: {roleLabel(user?.role)}
           </Badge>
           <Button onClick={() => void save()} disabled={saving || name.trim().length < 2}>
             {saving ? "Saving…" : "Save changes"}

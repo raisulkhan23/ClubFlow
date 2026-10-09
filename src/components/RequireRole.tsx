@@ -27,6 +27,21 @@ export const ROLE_LABEL: Record<AppRole, string> = {
   participant: "Participant",
 };
 
+const APP_ROLES: AppRole[] = ["super_admin", "organizer", "volunteer", "participant"];
+
+/**
+ * Coerces whatever is on the user document to a known app role. Legacy or
+ * unexpected role values must never fall through as an unrecognised role —
+ * that used to render as an empty label ("you're signed in as .").
+ */
+export function normalizeRole(role: unknown): AppRole {
+  return APP_ROLES.includes(role as AppRole) ? (role as AppRole) : "participant";
+}
+
+export function roleLabel(role: unknown): string {
+  return ROLE_LABEL[normalizeRole(role)];
+}
+
 /** Auth + role guard for protected routes. */
 export function RequireRole({
   children,
@@ -58,7 +73,7 @@ export function RequireRole({
     return <Navigate to={`/auth?returnTo=${encodeURIComponent(returnTo)}`} replace />;
   }
 
-  const role = (user?.role ?? "participant") as AppRole;
+  const role = normalizeRole(user?.role);
   const canClaimAdmin =
     allowed.includes("super_admin") && hasSuperAdmin === false && role !== "super_admin";
   if (allowed.length > 0 && !allowed.includes(role)) {
@@ -75,7 +90,7 @@ export function RequireRole({
             <CardDescription>
               {description ??
                 `This page is for ${allowed.map((r) => ROLE_LABEL[r]).join(" / ")} accounts.`}{" "}
-              You're signed in as {ROLE_LABEL[role]}.
+              You're signed in as {roleLabel(role)}.
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center text-sm text-muted-foreground">
@@ -114,6 +129,7 @@ export function RequireRole({
 }
 
 export function roleHome(role: AppRole | undefined): string {
+  role = normalizeRole(role);
   switch (role) {
     case "super_admin":
       return "/admin";
@@ -129,7 +145,7 @@ export function roleHome(role: AppRole | undefined): string {
 /** Redirect component used at /dashboard — sends staff roles to their workspaces. */
 export function WorkspaceEntry({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const role = (user?.role ?? "participant") as AppRole;
+  const role = normalizeRole(user?.role);
   if (role === "organizer" || role === "super_admin") return <Navigate to="/organizer" replace />;
   if (role === "volunteer") return <Navigate to="/volunteer" replace />;
   return children;
