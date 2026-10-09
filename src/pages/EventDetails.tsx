@@ -7,13 +7,26 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarDays, Clock, MapPin, Megaphone, Trophy, Users } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { useState } from "react";
-import { countdown, fmtDate, fmtDateTime } from "@/lib/format";
+import { countdown, fmtDate, fmtDateTime, fmtTimeRange } from "@/lib/format";
+import { FEST, festDayLabel, festDayNumber } from "@/lib/fest-schedule";
 
-const MEDALS = ["🥇", "🥈", "🥉"];
+/** Medal styling for the top three, text-only (no emoji as interface icons). */
+const POSITION_STYLE = [
+  "border-primary/40 bg-primary/10 text-primary",
+  "border-border bg-muted text-foreground",
+  "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
+];
 
 export default function EventDetails() {
   const { slug } = useParams<{ slug: string }>();
   const data = useQuery(api.events.getPublicBySlug, slug ? { slug } : "skip");
+  // Every stored session of this competition. Declared before the early returns
+  // so the hook order stays stable when the event is still loading.
+  const seriesKey = data?.event?.seriesKey;
+  const series = useQuery(
+    api.events.festSeries,
+    seriesKey ? { seriesKey } : "skip",
+  );
   // Captured once per mount so render stays pure.
   const [now] = useState(() => Date.now());
 
@@ -46,12 +59,25 @@ export default function EventDetails() {
     );
   }
 
-  const { event, publishedResults, announcements } = data;
-  const fillPct = Math.min(100, Math.round((event.confirmedCount / event.capacity) * 100));
+  const { event, publishedResults, announcements, clubName } = data;
+  // Ceremonies and the lunch block carry no capacity, so never divide by it.
+  const fillPct =
+    event.capacity > 0
+      ? Math.min(100, Math.round((event.confirmedCount / event.capacity) * 100))
+      : 0;
   const isOver = event.endAt < now;
+  const isCompetition = (event.kind ?? "competition") === "competition";
+  const isFestEntry = Boolean(event.festKey);
+  const sessions = series?.sessions ?? [];
+  const dayNo = isFestEntry ? festDayNumber(dhakaDayOf(event.startAt)) : 0;
 
-  const cta =
-    event.state === "open" || event.state === "almost_full" ? (
+  const cta = !isCompetition ? (
+    <p className="text-sm text-muted-foreground">
+      {event.kind === "break"
+        ? "A scheduled break in the fest programme — nothing to register for."
+        : "An open ceremony in the fest programme. No registration is required."}
+    </p>
+  ) : event.state === "open" || event.state === "almost_full" ? (
       <Button asChild size="lg" className="w-full sm:w-auto">
         <Link to={`/events/${event.slug}/register`}>Register now</Link>
       </Button>
@@ -95,31 +121,75 @@ export default function EventDetails() {
       <CoverArt theme={event.coverTheme} title={event.title} className="h-52 sm:h-64">
         <div className="flex h-full flex-col justify-end p-5 sm:p-8">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-black/40 px-2.5 py-1 text-xs font-medium text-white backdrop-blur">
+            <span className="rounded bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white">
               {event.category}
             </span>
-            <StatusBadge status={event.state} dot={event.state === "live"} />
+            {isCompetition ? (
+              <StatusBadge status={event.state} dot={event.state === "live"} />
+            ) : (
+              <span className="rounded border border-white/25 bg-black/55 px-2 py-0.5 text-[11px] font-medium text-white">
+                {event.kind === "break" ? "Schedule break" : "Ceremony"}
+              </span>
+            )}
             {event.teamEvent && (
-              <span className="rounded-full bg-black/40 px-2.5 py-1 text-xs text-white backdrop-blur">
+              <span className="rounded bg-black/55 px-2 py-0.5 text-[11px] text-white">
                 Team · {event.minTeamSize}–{event.maxTeamSize} members
               </span>
             )}
           </div>
           <h1 className="mt-3 max-w-2xl font-display text-2xl font-bold text-white sm:text-4xl">{event.title}</h1>
-          <p className="mt-1 text-sm text-white/70">Hosted by DRMC IT CLUB</p>
+          <p className="mt-1 text-sm text-white/70">
+            {isFestEntry
+              ? `${FEST.name} · Day ${dayNo} of 3`
+              : `Hosted by ${clubName || FEST.clubName}`}
+          </p>
         </div>
       </CoverArt>
 
       <main className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-8 lg:grid-cols-[1fr_340px]">
         <div className="min-w-0 space-y-8">
           <section>
-            <h2 className="font-display text-lg font-semibold">About this event</h2>
+            <h2 className="font-display text-sm font-semibold tracking-tight">About this event</h2>
             <p className="mt-1 text-sm leading-6 text-muted-foreground">{event.description}</p>
           </section>
 
+          {/* Multi-day competition: every scheduled session, chronological */}
+          {sessions.length > 1 && (
+            <section>
+              <h2 className="font-display text-sm font-semibold tracking-tight">
+                Scheduled sessions ({sessions.length})
+              </h2>
+              <ul className="mt-2 divide-y divide-border rounded-lg border">
+                {sessions.map((s) => {
+                  const current = s.slug === event.slug;
+                  return (
+                    <li key={s.slug}>
+                      <Link
+                        to={`/events/${s.slug}`}
+                        aria-current={current ? "page" : undefined}
+                        className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 px-3.5 py-2.5 text-sm transition-colors ${
+                          current ? "bg-primary/[0.06]" : "hover:bg-muted/50"
+                        }`}
+                      >
+                        <span className="font-medium">Day {s.dayNo}</span>
+                        <span className="text-muted-foreground">{festDayLabel(s.dayKey)}</span>
+                        <span className="ml-auto text-xs text-muted-foreground tabular">
+                          {fmtTimeRange(s.startAt, s.endAt)}
+                        </span>
+                        {current && (
+                          <span className="text-[11px] font-medium text-primary">Viewing</span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
+
           {event.prizes && (
             <section className="rounded-xl border border-primary/25 bg-primary/[0.04] p-4">
-              <h3 className="flex items-center gap-2 font-display text-base font-semibold">
+              <h3 className="flex items-center gap-2 font-display text-sm font-semibold">
                 <Trophy className="size-4 text-primary" /> Prizes
               </h3>
               <p className="mt-1.5 whitespace-pre-line text-sm text-muted-foreground">{event.prizes}</p>
@@ -128,7 +198,9 @@ export default function EventDetails() {
 
           {event.schedule.length > 0 && (
             <section>
-              <h2 className="font-display text-lg font-semibold">Schedule</h2>
+              <h2 className="font-display text-sm font-semibold tracking-tight">
+                {sessions.length > 1 ? "This session" : "Schedule"}
+              </h2>
               <ol className="mt-3 space-y-0">
                 {event.schedule.map((s, i) => (
                   <li key={s.id} className="relative flex gap-4 pb-5 last:pb-0">
@@ -186,13 +258,19 @@ export default function EventDetails() {
 
           {publishedResults.length > 0 && (
             <section className="rounded-xl border bg-card p-5">
-              <h2 className="flex items-center gap-2 font-display text-lg font-semibold">
+              <h2 className="flex items-center gap-2 font-display text-sm font-semibold tracking-tight">
                 <Trophy className="size-4 text-primary" /> Results
               </h2>
               <div className="mt-3 space-y-2">
                 {publishedResults.map((r) => (
                   <div key={`${r.position}-${r.participantName}`} className="flex items-center gap-3 rounded-lg border p-3">
-                    <span className="w-8 text-center text-xl">{MEDALS[r.position - 1] ?? "🏅"}</span>
+                    <span
+                      className={`flex size-7 shrink-0 items-center justify-center rounded border text-xs font-semibold tabular ${
+                        POSITION_STYLE[r.position - 1] ?? "border-border bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {r.position}
+                    </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{r.participantName}</p>
                       <p className="text-xs text-muted-foreground">{r.positionLabel}{r.score !== undefined ? ` · ${r.score} pts` : ""}</p>
@@ -206,7 +284,7 @@ export default function EventDetails() {
 
           {event.faq.length > 0 && (
             <section>
-              <h2 className="font-display text-lg font-semibold">FAQ</h2>
+              <h2 className="font-display text-sm font-semibold tracking-tight">FAQ</h2>
               <Accordion type="single" collapsible className="mt-3">
                 {event.faq.map((f, i) => (
                   <AccordionItem key={i} value={`faq-${i}`}>
@@ -235,20 +313,22 @@ export default function EventDetails() {
               <p className="mt-1 font-display text-xl font-bold text-primary">{countdown(event.startAt)}</p>
             )}
             <div className="mt-4">{cta}</div>
-            <div className="mt-4">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Users className="size-3.5" /> {event.confirmedCount} / {event.capacity} seats
-                </span>
-                <span className="tabular">{fillPct}%</span>
+            {isCompetition && event.capacity > 0 && (
+              <div className="mt-4">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Users className="size-3.5" /> {event.confirmedCount} / {event.capacity} seats
+                  </span>
+                  <span className="tabular">{fillPct}%</span>
+                </div>
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{ width: `${fillPct}%` }}
+                  />
+                </div>
               </div>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${fillPct}%` }}
-                />
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="space-y-3 rounded-xl border bg-card p-5 text-sm">
@@ -256,8 +336,10 @@ export default function EventDetails() {
               <CalendarDays className="mt-0.5 size-4 shrink-0 text-primary" />
               <span>
                 <span className="block font-medium">{fmtDate(event.startAt)}</span>
-                <span className="text-xs text-muted-foreground">
-                  {fmtDateTime(event.startAt)} → {fmtDate(event.endAt)}
+                {/* 12-hour range, always rendered in the fest timezone */}
+                <span className="text-xs text-muted-foreground tabular">
+                  {fmtTimeRange(event.startAt, event.endAt)}
+                  {isFestEntry && dayNo ? ` · Day ${dayNo}` : ""}
                 </span>
               </span>
             </p>
@@ -267,20 +349,26 @@ export default function EventDetails() {
                 <span className="block font-medium">{event.venue}</span>
               </span>
             </p>
-            <p className="flex items-start gap-2.5">
-              <Clock className="mt-0.5 size-4 shrink-0 text-primary" />
-              <span>
-                <span className="block font-medium">Registration deadline</span>
-                <span className="text-xs text-muted-foreground">{fmtDateTime(event.registrationDeadline)}</span>
-              </span>
-            </p>
+            {isCompetition && (
+              <p className="flex items-start gap-2.5">
+                <Clock className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span>
+                  <span className="block font-medium">Registration deadline</span>
+                  <span className="text-xs text-muted-foreground">
+                    {fmtDateTime(event.registrationDeadline)}
+                  </span>
+                </span>
+              </p>
+            )}
           </div>
 
           <div className="rounded-xl border bg-card p-5 text-sm">
             <h3 className="text-sm font-semibold">Contact</h3>
             <p className="mt-1.5 text-muted-foreground">{event.contactEmail}</p>
             {event.contactPhone && <p className="text-muted-foreground">{event.contactPhone}</p>}
-            <p className="mt-2 text-xs text-muted-foreground">Organized by DRMC IT CLUB</p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Organized by {clubName || FEST.clubName}
+            </p>
           </div>
         </aside>
       </main>

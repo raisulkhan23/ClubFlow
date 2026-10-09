@@ -45,8 +45,14 @@ export const CATEGORIES = [
   "Gaming",
   "Business",
   "Cultural",
+  // Added for the DRMC Tech Carnival schedule: the fest runs a large quiz
+  // track, plus ceremonies and non-competitive blocks such as lunch.
+  "Quiz",
+  "Ceremony",
+  "Break",
 ] as const;
 export const categoryValidator = v.union(...CATEGORIES.map((c) => v.literal(c)));
+export type Category = Infer<typeof categoryValidator>;
 
 // ── Dynamic registration form fields ─────────────────────────────────────────
 export const formFieldTypeValidator = v.union(
@@ -90,6 +96,18 @@ const scheduleItemValidator = v.object({
   time: v.string(),
   description: v.optional(v.string()),
 });
+
+/**
+ * What a schedule entry fundamentally is. A fest day mixes competitive
+ * activities with ceremonies and non-registrable blocks (lunch), which must not
+ * become registrable events.
+ */
+export const eventKindValidator = v.union(
+  v.literal("competition"),
+  v.literal("ceremony"),
+  v.literal("break"),
+);
+export type EventKind = Infer<typeof eventKindValidator>;
 
 // ── Tables ───────────────────────────────────────────────────────────────────
 const schema = defineSchema(
@@ -153,11 +171,24 @@ const schema = defineSchema(
       publishedAt: v.optional(v.number()),
       createdAt: v.number(),
       updatedAt: v.number(),
+
+      // ── Fest scheduling (optional, so ordinary events are unaffected).
+      // Present on every entry generated from the official DRMC Tech
+      // Carnival 2026 schedule.
+      /** competition | ceremony | break (lunch). */
+      kind: v.optional(eventKindValidator),
+      /** Parent competition across days, e.g. "arcane-draw". One event row per
+       *  daily session; seriesKey links sessions without merging them. */
+      seriesKey: v.optional(v.string()),
+      /** Fest this entry belongs to, e.g. "drmc-tc-2026". */
+      festKey: v.optional(v.string()),
     })
       .index("by_club", ["clubId"])
       .index("by_status", ["status"])
       .index("by_slug", ["slug"])
-      .index("by_createdBy", ["createdBy"]),
+      .index("by_createdBy", ["createdBy"])
+      .index("by_fest", ["festKey"])
+      .index("by_series", ["seriesKey"]),
 
     registrations: defineTable({
       eventId: v.id("events"),

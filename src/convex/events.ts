@@ -1,4 +1,4 @@
-import { ConvexError, v } from "convex/values";
+import { ConvexError, Infer, v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { QueryCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -14,6 +14,15 @@ import {
   registrationState,
   type EventRegistrationState,
 } from "../lib/event-state";
+import {
+  FEST,
+  FEST_DAY_KEYS,
+  FEST_SCHEDULE,
+  festDayKeyOf,
+  festDayLabel,
+  festDayNumber,
+  seriesKeyOf,
+} from "../lib/fest-schedule";
 import type { FormField } from "./schema";
 
 const PUBLIC_STATUSES = ["published", "registration_closed", "live", "completed"] as const;
@@ -60,8 +69,10 @@ export const listPublic = query({
     category: v.optional(v.string()),
     sort: v.optional(v.union(v.literal("upcoming"), v.literal("newest"), v.literal("popular"))),
     limit: v.optional(v.number()),
+    /** Restrict to one fest day, "2026-10-08" — compared in Asia/Dhaka. */
+    day: v.optional(v.string()),
   },
-  handler: async (ctx, { search, category, sort = "upcoming", limit = 60 }) => {
+  handler: async (ctx, { search, category, sort = "upcoming", limit = 200, day }) => {
     const all: Doc<"events">[] = [];
     for (const status of PUBLIC_STATUSES) {
       const byStatus = await ctx.db
@@ -84,6 +95,10 @@ export const listPublic = query({
     if (category && category !== "all") {
       events = events.filter((e) => e.category === category);
     }
+    if (day && day !== "all") {
+      // Compare against the Dhaka calendar day, never the server's local day.
+      events = events.filter((e) => festDayKeyOf(e.startAt) === day);
+    }
     if (sort === "upcoming") {
       events.sort((a, b) => a.startAt - b.startAt);
     } else if (sort === "newest") {
@@ -92,6 +107,96 @@ export const listPublic = query({
       events.sort((a, b) => b.confirmedCount - a.confirmedCount);
     }
     return events.slice(0, limit);
+  },
+});
+
+/**
+ * The fest agenda: every published schedule entry for the three official days,
+ * grouped by Dhaka calendar day and ordered chronologically.
+ *
+ * Reads only rows carrying the fest key, so nothing else can leak into the
+ * schedule view, and it is not subject to the pagination limit that applies to
+ * the general event list.
+ */
+export const festAgenda = query({
+  args: { day: v.optional(v.string()) },
+  handler: async (ctx, { day }) => {
+    const all = await ctx.db
+      .query("events")
+      .withIndex("by_fest", (q) => q.eq("festKey", FEST.key))
+      .collect();
+
+    const visible = all.filter((e) =>
+      PUBLIC_STATUSES.includes(e.status as (typeof PUBLIC_STATUSES)[number]),
+    );
+    const withCount = await withCounts(ctx, visible);
+
+    // Chronological, with a stable tie-break for the many simultaneous sessions.
+    const sorted = withCount.sort(
+      (a, b) => a.startAt - b.startAt || a.title.localeCompare(b.title),
+    );
+
+    const days = FEST_DAY_KEYS.filter((key) => !day || day === "all" || key === day).map(
+      (dayKey) => ({
+        dayKey,
+        dayNo: festDayNumber(dayKey),
+        label: festDayLabel(dayKey),
+        entries: sorted.filter((e) => festDayKeyOf(e.startAt) === dayKey),
+      }),
+    );
+
+    return {
+      fest: {
+        key: FEST.key,
+        name: FEST.name,
+        scheduleTitle: FEST.scheduleTitle,
+        sponsor: FEST.sponsor,
+        timeZone: FEST.timeZone,
+      },
+      days,
+      total: sorted.length,
+    };
+  },
+});
+
+/**
+ * Every stored session of one competition, chronological, plus the number of
+ * sessions the official schedule defines — so the detail page can show all
+ * dates of a multi-day competition without merging or hiding any of them.
+ */
+export const festSeries = query({
+  args: { seriesKey: v.string() },
+  handler: async (ctx, { seriesKey }) => {
+    const rows = await ctx.db
+      .query("events")
+      .withIndex("by_series", (q) => q.eq("seriesKey", seriesKey))
+      .collect();
+    const visible = rows.filter((e) =>
+      PUBLIC_STATUSES.includes(e.status as (typeof PUBLIC_STATUSES)[number]),
+    );
+    const sessions = (await withCounts(ctx, visible)).sort(
+      (a, b) => a.startAt - b.startAt,
+    );
+    const official = FEST_SCHEDULE.filter((e) => seriesKeyOf(e.title) === seriesKey);
+
+    return {
+      seriesKey,
+      sessionCount: sessions.length,
+      officialSessionCount: official.length,
+      sessions: sessions.map((e) => ({
+        _id: e._id,
+        slug: e.slug,
+        title: e.title,
+        startAt: e.startAt,
+        endAt: e.endAt,
+        dayKey: festDayKeyOf(e.startAt),
+        dayNo: festDayKeyOf(e.startAt) ? festDayNumber(festDayKeyOf(e.startAt)!) : 0,
+        kind: e.kind ?? "competition",
+        state: e.state,
+        capacity: e.capacity,
+        confirmedCount: e.confirmedCount,
+      })),
+    };
   },
 });
 
@@ -327,29 +432,12 @@ const eventInput = v.object({
   faq: v.optional(v.array(faqItem)),
   schedule: v.optional(v.array(scheduleItem)),
 });
-export type EventInput = {
-  title: string;
-  category: "Technology" | "Robotics" | "Design" | "Gaming" | "Business" | "Cultural";
-  shortDescription: string;
-  description: string;
-  startAt: number;
-  endAt: number;
-  venue: string;
-  capacity: number;
-  registrationDeadline: number;
-  teamEvent: boolean;
-  minTeamSize?: number;
-  maxTeamSize?: number;
-  requiresApproval: boolean;
-  contactEmail: string;
-  contactPhone?: string;
-  prizes?: string;
-  eligibility?: string;
-  rules?: string;
-  coverTheme?: number;
-  faq?: Array<{ q: string; a: string }>;
-  schedule?: Array<{ id: string; title: string; time: string; description?: string }>;
-};
+/**
+ * Derived from the validator rather than hand-written, so the event payload can
+ * never drift out of sync with `schema` again (a duplicated category union here
+ * was what broke `createEvent` / `updateEvent` when the taxonomy grew).
+ */
+export type EventInput = Infer<typeof eventInput>;
 
 function validateEventInput(input: EventInput) {
   if (input.title.trim().length < 3) throw new ConvexError("Event title is too short.");
