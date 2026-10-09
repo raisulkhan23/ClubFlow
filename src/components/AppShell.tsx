@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { roleLabel } from "@/components/RequireRole";
+import { DemoFooterNote, DemoNote } from "@/components/DemoTag";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useNavigate } from "react-router";
@@ -297,6 +298,7 @@ function GlobalSearch() {
             </Link>
 
             {variant === "organizer" && <GlobalSearch />}
+            <DemoNote className="hidden md:inline-flex" />
             <div className="ml-auto flex items-center gap-1">
               {variant === "organizer" ? (
                 <Button
@@ -321,6 +323,12 @@ function GlobalSearch() {
               {children ?? <Outlet />}
             </div>
           </main>
+
+          <footer className="border-t px-4 py-4 md:px-6">
+            <div className="mx-auto w-full max-w-6xl">
+              <DemoFooterNote />
+            </div>
+          </footer>
         </div>
       </div>
     </div>

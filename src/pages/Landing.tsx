@@ -18,6 +18,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { Link } from "react-router";
+import { DemoFooterNote, DemoNote } from "@/components/DemoTag";
 import { displayClubName, fmtDate } from "@/lib/format";
 
 function Stat({ value, label }: { value: string | number; label: string }) {
@@ -88,7 +89,7 @@ export default function Landing() {
       {/* Nav */}
       <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4">
-          <Link to="/" aria-label="ClubFlow home"><Logo /></Link>
+          <Link to="/" aria-label="ClubFlow home" className="flex items-center gap-2"><Logo /><DemoNote className="hidden md:inline-flex" /></Link>
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
             <a href="#how" className="hover:text-foreground">How it works</a>
             <a href="#features" className="hover:text-foreground">Features</a>
@@ -293,6 +294,7 @@ export default function Landing() {
       <footer className="border-t">
         <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row">
           <Logo markClass="size-6" />
+          <DemoFooterNote />
           <p>An in-house event operations platform.</p>
           <div className="flex gap-4">
             <Link to="/fests" className="hover:text-foreground">Festivals</Link>

@@ -12,6 +12,7 @@ import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 import { fmtDate } from "@/lib/format";
+import { errorMessage } from "@/lib/errors";
 
 type TeamMember = { name: string; email: string };
 
@@ -27,6 +28,7 @@ export default function Register() {
   const [values, setValues] = useState<FieldValues>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [success, setSuccess] = useState<{ registrationId: string; status: string } | null>(null);
 
   const event = data?.event;
@@ -119,6 +121,7 @@ export default function Register() {
       return;
     }
     setSubmitting(true);
+    setSubmitError(null);
     try {
       const cleanedMembers = members
         .filter((m) => m.name.trim())
@@ -134,7 +137,9 @@ export default function Register() {
       toast.success("Registration successful 🎉");
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Registration failed. Please try again.");
+      const message = errorMessage(err, "Registration failed. Please try again.");
+      setSubmitError(message);
+      toast.error(message);
     } finally {
       setSubmitting(false);
     }
@@ -372,6 +377,20 @@ export default function Register() {
               )}
             </div>
           </section>
+        )}
+
+        {/* Server-side validation / registration errors */}
+        {submitError && (
+          <div
+            role="alert"
+            className="mt-6 rounded-lg border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-700 dark:text-red-300"
+          >
+            <p className="font-semibold">We could not complete your registration</p>
+            <p className="mt-1">{submitError}</p>
+            <p className="mt-1 text-xs opacity-80">
+              Fix the highlighted field above and submit again — your details are still saved in this form.
+            </p>
+          </div>
         )}
 
         {/* Nav buttons */}

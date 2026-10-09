@@ -6,7 +6,6 @@ import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
 import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
 import React, { StrictMode, useEffect, lazy, Suspense } from "react";
-import { DemoTag } from "./components/DemoTag";
 
 
 import { createRoot } from "react-dom/client";
@@ -150,7 +149,6 @@ createRoot(document.getElementById("root")!).render(
       </ToolbarErrorBoundary>
       <ConvexAuthProvider client={convex}>
         <BrowserRouter>
-          <DemoTag />
           <RouteSyncer />
           <Suspense fallback={<RouteLoading />}>
             <Routes>
