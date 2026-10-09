@@ -103,3 +103,59 @@ export const listOrganizers = query({
     );
   },
 });
+
+/** Super admin: change a user's role. Guarded against demoting the last
+ * super admin and against self-demotion that would strand the platform. */
+export const setUserRole = mutation({
+  args: {
+    userId: v.id("users"),
+    role: v.union(
+      v.literal("super_admin"),
+      v.literal("organizer"),
+      v.literal("volunteer"),
+      v.literal("participant"),
+    ),
+  },
+  handler: async (ctx, { userId, role }) => {
+    await requireRole(ctx, ROLES.SUPER_ADMIN);
+    const target = await ctx.db.get(userId);
+    if (!target) throw new ConvexError("User not found.");
+    if (target.role === "super_admin" && role !== "super_admin") {
+      const admins = (await ctx.db.query("users").collect()).filter(
+        (u) => u.role === "super_admin",
+      );
+      if (admins.length <= 1) {
+        throw new ConvexError("Cannot demote the last super admin.");
+      }
+    }
+    await ctx.db.patch(userId, { role });
+    return { ok: true };
+  },
+});
+
+/** Super admin: delete a club only when it has no events, so no
+ * registrations or certificates are orphaned. */
+export const deleteClub = mutation({
+  args: { clubId: v.id("clubs") },
+  handler: async (ctx, { clubId }) => {
+    await requireRole(ctx, ROLES.SUPER_ADMIN);
+    const club = await ctx.db.get(clubId);
+    if (!club) throw new ConvexError("Club not found.");
+    const events = await ctx.db
+      .query("events")
+      .withIndex("by_club", (q) => q.eq("clubId", clubId))
+      .collect();
+    if (events.length > 0) {
+      throw new ConvexError(
+        `${club.name} still has ${events.length} event${events.length === 1 ? "" : "s"}. Archive or delete them first.`,
+      );
+    }
+    // Detach any remaining users linked to this empty club.
+    const members = (await ctx.db.query("users").collect()).filter((u) => u.clubId === clubId);
+    for (const m of members) {
+      await ctx.db.patch(m._id, { clubId: undefined });
+    }
+    await ctx.db.delete(clubId);
+    return { ok: true };
+  },
+});

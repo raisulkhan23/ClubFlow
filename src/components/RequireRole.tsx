@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Lock, ShieldAlert } from "lucide-react";
+import { Loader2, ShieldAlert } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, Navigate, useLocation } from "react-router";
 import { cn } from "@/lib/utils";

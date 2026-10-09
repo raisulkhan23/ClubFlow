@@ -16,7 +16,6 @@ import {
   FEST_SCHEDULE,
   entryWindow,
   dhakaDayKey,
-  dhakaTime,
   festDayKeyOf,
   festDayLabel,
   festDayNumber,
@@ -86,6 +85,7 @@ export default function Events() {
     }
     return m;
   }, [events]);
+  void seriesSize;
 
   const grouped = useMemo(() => {
     const buckets = new Map<string, NonNullable<typeof events>>();
@@ -337,10 +337,6 @@ export default function Events() {
           <CalendarDays className="size-3.5" aria-hidden="true" />
           {FEST.name} · {FEST.scheduleTitle} · times shown in {FEST.timeZone}
         </p>
-        <p className="text-xs text-muted-foreground">[DEMO] Seeded organizer card — switch accounts or open your Profile from the workspace menu.</p>
-        <p className="text-xs text-muted-foreground">[DEMO] Seeded organizer card — switch accounts or open your Profile from the workspace menu.</p>
-        <p className="text-xs text-muted-foreground">[DEMO] Seeded organizer card — switch accounts or open your Profile from the workspace menu.</p>
-        <p className="mt-2 text-xs text-muted-foreground">[DEMO] Seeded organizer card — switch accounts or open your Profile from the workspace menu.</p>
       </main>
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { toast } from "sonner";
 import { Users, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,9 @@ import { Empty, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 export default function Admin() {
   const [mode, setMode] = useState<"organizers" | "platform">("organizers");
   const [search, setSearch] = useState("");
+  const setRole = useMutation(api.clubs.setUserRole);
+  const deleteClub = useMutation(api.clubs.deleteClub);
+  const [busyId, setBusyId] = useState<string | null>(null);
 
   const organizers = useQuery(api.clubs.listOrganizers);
   const platformData = useQuery(api.clubs.listAll);
@@ -122,13 +126,21 @@ export default function Admin() {
                           size="sm"
                           variant="ghost"
                           className="text-muted-foreground"
-                          onClick={() => {
-                            if (confirm(`Demote ${u.name} to participant?`)) {
-                              window.location.reload();
+                          disabled={busyId === u._id}
+                          onClick={async () => {
+                            if (!confirm(`Demote ${u.name} to participant? Their dashboard role will change immediately.`)) return;
+                            setBusyId(u._id);
+                            try {
+                              await setRole({ userId: u._id as never, role: "participant" });
+                              toast.success(`${u.name} is now a participant.`);
+                            } catch (err) {
+                              toast.error(err instanceof Error ? err.message : "Could not update role.");
+                            } finally {
+                              setBusyId(null);
                             }
                           }}
                         >
-                          Demote
+                          {busyId === u._id ? "Saving…" : "Demote"}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -216,13 +228,21 @@ export default function Admin() {
                                 size="sm"
                                 variant="ghost"
                                 className="text-muted-foreground"
-                                onClick={() => {
-                                  if (confirm(`Remove ${c.name}? This cannot be undone.`)) {
-                                    window.location.reload();
+                                disabled={busyId === c._id}
+                                onClick={async () => {
+                                  if (!confirm(`Remove ${c.name}? Only clubs without any events can be removed.`)) return;
+                                  setBusyId(c._id);
+                                  try {
+                                    await deleteClub({ clubId: c._id as never });
+                                    toast.success(`${c.name} was removed.`);
+                                  } catch (err) {
+                                    toast.error(err instanceof Error ? err.message : "Could not remove club.");
+                                  } finally {
+                                    setBusyId(null);
                                   }
                                 }}
                               >
-                                Remove
+                                {busyId === c._id ? "Removing…" : "Remove"}
                               </Button>
                             </TableCell>
                           </TableRow>

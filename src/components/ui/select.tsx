@@ -1,6 +1,6 @@
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
-import { Check, ChevronDown, ChevronUp } from "lucide-react"
+import { Check } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -9,6 +9,7 @@ function Select({
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root> & { className?: string }) {
   const { className: _cls, ...rest } = props as Record<string, unknown>;
+  void _cls;
   return (
     <div
       data-slot="select"

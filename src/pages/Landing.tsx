@@ -1,5 +1,4 @@
-import { useEffect } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Logo } from "@/components/Logo";
 import { CoverArt, StatusBadge } from "@/components/RequireRole";
