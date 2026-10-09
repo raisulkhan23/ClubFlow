@@ -17,6 +17,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Logo } from "@/components/Logo";
+import { api } from "@/convex/_generated/api";
+import { useQuery } from "convex/react";
 import { ArrowRight, BadgeCheck, CalendarCheck2, ClipboardList, Loader2, Mail, ShieldCheck } from "lucide-react";
 import { Suspense, useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
@@ -51,6 +53,10 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     searchParams.get("returnTo"),
     redirectAfterAuth,
   );
+
+  const festStatus = useQuery(api.festSeed.festScheduleStatus);
+  const festReady = festStatus ? festStatus.matches : false;
+
   const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -135,7 +141,16 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
               Sign in with email to keep your registrations safe across devices — or jump straight into a demo to see ClubFlow from any role.
             </p>
 
-            <div className="mt-8 rounded-xl border bg-card/60 p-4 backdrop-blur">
+            {!festReady && (
+              <div className="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-700 dark:text-amber-300">
+                <p className="flex items-start gap-2">
+                  <Loader2 className="mt-0.5 shrink-0 size-3.5 animate-spin text-amber-500" aria-hidden="true" />
+                  <span>The real DRMC Tech Carnival 2026 schedule is still being seeded. Demo login will do that automatically once it is ready.</span>
+                </p>
+              </div>
+            )}
+
+            <div className="mt-4 rounded-xl border bg-card/60 p-4 backdrop-blur">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Try the demo · no signup needed
               </p>

@@ -73,18 +73,13 @@ const COMPARE = [
 ];
 
 export default function Landing() {
-  // Make sure demo data exists before anyone browses (idempotent server-side).
-  const ensureSeeded = useMutation(api.seed.ensureSeeded);
-  useEffect(() => {
-    void ensureSeeded({}).catch(() => {
-      /* seeding is best-effort; the page still renders */
-    });
-  }, [ensureSeeded]);
-
   const stats = useQuery(api.events.publicStats);
   const events = useQuery(api.events.listPublic, { sort: "upcoming", limit: 3 });
   const { isAuthenticated, user } = useAuth();
   const dashboardHref = isAuthenticated ? roleHome(user?.role as AppRole) : "/auth?returnTo=%2Forganizer";
+
+  const festStatus = useQuery(api.festSeed.festScheduleStatus);
+  const festReady = festStatus ? festStatus.matches : false;
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
@@ -111,6 +106,16 @@ export default function Landing() {
           </div>
         </div>
       </header>
+
+      {/* Fest data banner — small, final, pinned near the hero */}
+      {!festReady && (
+        <div className="mx-auto max-w-6xl px-4 pt-5 text-center">
+          <p className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
+            <span className="size-1.5 rounded-full bg-amber-500/60" aria-hidden="true" />
+            Real schedule data is still being seeded — refreshing updates the fest below.
+          </p>
+        </div>
+      )}
 
       {/* Hero */}
       <section className="relative mx-auto w-full max-w-6xl px-4 pb-16 pt-16 sm:pt-24">
