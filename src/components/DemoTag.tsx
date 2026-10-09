@@ -28,12 +28,12 @@ export function DemoTag() {
   const role = roleLabel(user?.role);
 
   return (
-    <div className="fixed bottom-2 left-2 right-2 z-50 sm:bottom-4 sm:left-auto sm:right-4 sm:w-auto">
+    <div className="fixed bottom-2 left-1/2 z-50 w-[calc(100%_-_1rem)] max-w-xs -translate-x-1/2 sm:bottom-4">
       <div
         role="note"
-        className="max-w-xs overflow-hidden rounded-md border border-primary/30 bg-primary/10 px-2.5 py-1.5 text-[10px] leading-snug shadow-sm backdrop-blur"
+        className="overflow-hidden rounded-md border border-primary/30 bg-primary/10 px-2.5 py-1.5 text-center text-[10px] leading-snug shadow-sm backdrop-blur"
       >
-        <p className="flex items-center gap-1 text-[11px] font-semibold text-primary">
+        <p className="flex items-center justify-center gap-1 text-[11px] font-semibold text-primary">
           Demo preview
           {role && (
             <>

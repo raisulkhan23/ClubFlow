@@ -20,7 +20,7 @@ import { ArrowLeft, CalendarDays, CalendarPlus, Copy, FileDown, MapPin, QrCode a
 import { useState } from "react";
 import { Link, useParams } from "react-router";
 import { toast } from "sonner";
-import { fmtDate, fmtDateTime } from "@/lib/format";
+import { displayClubName, fmtDate, fmtDateTime } from "@/lib/format";
 import { downloadIcs, icsForEvent } from "@/lib/ics";
 import { generateCertificatePdf } from "@/lib/certificate-pdf";
 
@@ -50,7 +50,8 @@ export default function RegistrationDetail() {
     );
   }
 
-  const { registration, event, clubName, certificate, participantName } = data;
+  const { registration, event, clubName: rawClubName, certificate, participantName } = data;
+  const clubName = displayClubName(rawClubName);
 
   const downloadCertificate = async () => {
     if (!certificate) return;

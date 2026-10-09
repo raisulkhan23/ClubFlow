@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Separator } from "@/components/ui/separator";
 import { Empty, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
+import { displayClubName } from "@/lib/format";
 
 export default function Admin() {
   const [mode, setMode] = useState<"organizers" | "platform">("organizers");
@@ -119,7 +120,7 @@ export default function Admin() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {u.clubName ?? "—"}
+                        {displayClubName(u.clubName) || "—"}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -216,7 +217,7 @@ export default function Admin() {
                       <TableBody>
                         {platformData.clubs.map((c) => (
                           <TableRow key={c._id}>
-                            <TableCell className="font-medium">{c.name}</TableCell>
+                            <TableCell className="font-medium">{displayClubName(c.name)}</TableCell>
                             <TableCell className="text-muted-foreground font-mono text-sm">
                               {c.slug}
                             </TableCell>

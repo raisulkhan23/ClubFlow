@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { BadgeCheck, Search, ShieldX } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
-import { fmtDate } from "@/lib/format";
+import { displayClubName, fmtDate } from "@/lib/format";
 
 export default function Verify() {
   const params = useParams<{ certificateId?: string }>();
@@ -94,7 +94,7 @@ export default function Verify() {
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-muted-foreground">Issued by</dt>
-                    <dd className="font-medium">{result.clubName}</dd>
+                    <dd className="font-medium">{displayClubName(result.clubName)}</dd>
                   </div>
                   <div className="flex justify-between gap-4">
                     <dt className="text-muted-foreground">Issued on</dt>

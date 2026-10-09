@@ -18,7 +18,7 @@ import {
   Trophy,
 } from "lucide-react";
 import { Link } from "react-router";
-import { fmtDate } from "@/lib/format";
+import { displayClubName, fmtDate } from "@/lib/format";
 
 function Stat({ value, label }: { value: string | number; label: string }) {
   return (
@@ -194,7 +194,7 @@ export default function Landing() {
                   {fmtDate(e.startAt)} · {e.venue}
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground tabular">
-                  {e.confirmedCount}/{e.capacity} registered · by {e.clubName}
+                  {e.confirmedCount}/{e.capacity} registered · by {displayClubName(e.clubName)}
                 </p>
               </div>
             </Link>

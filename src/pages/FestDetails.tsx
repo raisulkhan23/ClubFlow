@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Logo } from "@/components/Logo";
 import { CoverArt, EmptyState, PageHeader, StatusBadge } from "@/components/RequireRole";
-import { fmtDate, fmtTimeRange } from "@/lib/format";
+import { displayClubName, fmtDate, fmtTimeRange } from "@/lib/format";
 import { EVENT_STATUS_LABEL, registrationState } from "@/lib/event-state";
 
 export default function FestDetails() {
@@ -47,7 +47,7 @@ export default function FestDetails() {
           <>
             {/* Breadcrumb: Organization / Fest */}
             <p className="text-xs text-muted-foreground">
-              <Link to="/" className="hover:text-foreground">{data.organization.name}</Link>
+              <Link to="/" className="hover:text-foreground">{displayClubName(data.organization.name)}</Link>
               <span className="mx-1.5">/</span>
               <Link to="/fests" className="hover:text-foreground">Festivals</Link>
               <span className="mx-1.5">/</span>

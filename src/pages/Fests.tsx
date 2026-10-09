@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Logo } from "@/components/Logo";
 import { PageHeader, EmptyState, CoverArt } from "@/components/RequireRole";
-import { fmtDate } from "@/lib/format";
+import { displayClubName, fmtDate } from "@/lib/format";
 import { FEST } from "@/lib/fest-schedule";
 
 export default function Fests() {
@@ -45,14 +45,14 @@ export default function Fests() {
 
       <main className="mx-auto w-full max-w-6xl px-4 py-8">
         <p className="text-xs text-muted-foreground">
-          <Link to="/" className="hover:text-foreground">{org?.name ?? FEST.clubName}</Link>
+          <Link to="/" className="hover:text-foreground">{displayClubName(org?.name) || FEST.clubName}</Link>
           <span className="mx-1.5">/</span>
           <span className="text-foreground">Festivals</span>
         </p>
 
         <PageHeader
           eyebrow="Festival directory"
-          title={org?.name ? `${org.name} festivals` : "Festivals"}
+          title={org?.name ? `${displayClubName(org.name)} festivals` : "Festivals"}
           description="Pick a festival to see its events and register. Every event belongs to exactly one festival in the organization."
         />
 

@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fmtDate } from "@/lib/format";
+import { displayClubName, fmtDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { PublicEvent } from "@/convex/events";
 
@@ -61,7 +61,7 @@ export default function OrganizerEvents() {
       if (!q) return true;
       return (
         e.title.toLowerCase().includes(q) ||
-        (e.clubName ?? "").toLowerCase().includes(q) ||
+        displayClubName(e.clubName).toLowerCase().includes(q) ||
         (e.shortDescription ?? "").toLowerCase().includes(q)
       );
     });
@@ -224,7 +224,7 @@ export default function OrganizerEvents() {
                               {e.title}
                             </span>
                             <span className="block truncate text-xs text-muted-foreground">
-                              {e.clubName}
+                              {displayClubName(e.clubName)}
                               {e.shortDescription ? ` · ${e.shortDescription}` : ""}
                             </span>
                           </Link>

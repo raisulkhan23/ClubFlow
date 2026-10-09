@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarDays, Clock, MapPin, Megaphone, Trophy, Users } from "lucide-react";
 import { Link, useParams } from "react-router";
 import { useState } from "react";
-import { countdown, fmtDate, fmtDateTime, fmtTimeRange } from "@/lib/format";
+import { countdown, displayClubName, fmtDate, fmtDateTime, fmtTimeRange } from "@/lib/format";
 import {
   FEST,
   FEST_DAY_KEYS,
@@ -70,8 +70,8 @@ export default function EventDetails() {
   }
 
   const { event, publishedResults, announcements, club } = data;
-  const clubName = (club?.name ?? FEST.clubName) ?? FEST.clubName ?? "";
-  const orgName = lineage?.organizationName || clubName;
+  const clubName = displayClubName(club?.name ?? FEST.clubName) || FEST.clubName;
+  const orgName = displayClubName(lineage?.organizationName) || clubName;
   const parentFest = lineage?.fest ?? null;
   // Ceremonies and the lunch block carry no capacity, so never divide by it.
   const fillPct =

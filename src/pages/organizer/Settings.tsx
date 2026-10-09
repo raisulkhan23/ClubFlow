@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { fmtDate } from "@/lib/format";
+import { displayClubName, fmtDate } from "@/lib/format";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -97,9 +97,9 @@ export default function Settings() {
                 <Label htmlFor="club-name">Club name</Label>
                 <Input
                   id="club-name"
-                  value={club.name}
+                  value={displayClubName(club.name)}
                   onChange={(e) => updateClub({ name: e.target.value })}
-                  placeholder="DRMC IT CLUB"
+                  placeholder="DRMC IT Club"
                 />
               </div>
               <div className="space-y-1.5">

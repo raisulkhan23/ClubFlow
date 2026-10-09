@@ -91,6 +91,21 @@ export function countdown(ts: number, now: number = Date.now()): string {
   return `${mins}m to go`;
 }
 
+/**
+ * Canonical display name for the club.
+ *
+ * Older data rows still carry legacy variants ("DRMC Tech Club", "DRMC IT CLUB"),
+ * so every club/organization label rendered in the UI passes through here.
+ * Anything that is not a DRMC club name falls through untouched.
+ */
+export function displayClubName(name?: string | null): string {
+  const value = (name ?? "").trim();
+  if (!value) return "";
+  return /^drmc[\s-]+(it|information technology|tech|technology)[\s-]+club$/i.test(value)
+    ? "DRMC IT Club"
+    : value;
+}
+
 export function initials(name?: string): string {
   if (!name) return "U";
   return name
