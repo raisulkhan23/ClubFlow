@@ -177,7 +177,7 @@ export const festSeries = query({
     const sessions = (await withCounts(ctx, visible)).sort(
       (a, b) => a.startAt - b.startAt,
     );
-    const official = FEST_SCHEDULE.filter((e) => seriesKeyOf(e.title) === seriesKey);
+    const official = Object.values(FEST_SCHEDULE).filter((e) => seriesKeyOf(e.title) === seriesKey);
 
     return {
       seriesKey,

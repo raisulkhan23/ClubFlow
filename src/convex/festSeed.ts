@@ -19,6 +19,17 @@ import {
   scheduleSlug,
 } from "../lib/fest-schedule";
 
+// Re-export a wider ScheduleEntry so the rest of this module can use category/kind/day.
+interface ScheduleEntry {
+  day: FestDayKey;
+  title: string;
+  start: string;
+  end: string;
+  kind?: string;
+  category?: string;
+  sessions?: Array<{ start: string; end: string; title: string; description?: string; day?: FestDayKey }>;
+}
+
 /**
  * ─────────────────────────────────────────────────────────────────────────────
  * 9th DRMC International Tech Carnival 2026 — schedule seeding
@@ -144,7 +155,7 @@ function categoryOf(entry: ScheduleEntry): Category {
 /** A stable, deterministic slug for one daily schedule entry. */
 const slugFor = (entry: ScheduleEntry) => scheduleSlug(entry.day, entry.title);
 
-const dayCovers = (entry: ScheduleEntry) => seriesSessions(entry.title);
+const dayCovers = (entry: ScheduleEntry) => seriesSessions(entry);
 
 /** Composed strictly from the entry itself — no invented prose. */
 function describeEntry(entry: ScheduleEntry): { short: string; long: string } {
@@ -157,7 +168,7 @@ function describeEntry(entry: ScheduleEntry): { short: string; long: string } {
     `as part of the ${FEST.name} (day ${dayNo} of 3).` +
     (sessions.length > 1
       ? ` This competition runs across ${sessions.length} days: ` +
-        sessions.map((s) => `${festDayLabel(s.day)} (${s.start} – ${s.end})`).join("; ") +
+        sessions.map((s) => `${festDayLabel(s.day ?? entry.day)} (${s.start} – ${s.end})`).join("; ") +
         "."
       : "");
   return { short, long };
@@ -170,7 +181,7 @@ function scheduleItems(entry: ScheduleEntry) {
     id: `s${i + 1}`,
     title:
       sessions.length > 1
-        ? `Day ${festDayNumber(s.day)} of 3 · ${festDayLabel(s.day)}`
+        ? `Day ${festDayNumber(s.day ?? entry.day)} of 3 · ${festDayLabel(s.day ?? entry.day)}`
         : "Scheduled session",
     time: `${s.start} – ${s.end}`,
   }));
@@ -356,7 +367,7 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
   let updated = 0;
   const upserted: Array<{ _id: Id<"events">; entry: ScheduleEntry; title: string }> = [];
 
-  for (const entry of FEST_SCHEDULE) {
+  for (const entry of Object.values(FEST_SCHEDULE)) {
     const slug = slugFor(entry);
     const { startAt, endAt } = entryWindow(entry);
     const isCompetition = entry.kind === "competition";
@@ -373,11 +384,11 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
       // Ceremonies and the lunch break are publicly listed schedule blocks but
       // are not registrable, so they sit in the closed state.
       status: isCompetition ? ("published" as const) : ("registration_closed" as const),
-      startAt,
-      endAt,
+      startAt: startAt.getTime(),
+      endAt: endAt.getTime(),
       venue: VENUE_PLACEHOLDER,
       capacity: isCompetition ? DEMO_CAPACITY : 0,
-      registrationDeadline: startAt,
+      registrationDeadline: startAt.getTime(),
       teamEvent: false,
       requiresApproval: false,
       contactEmail: CLUB_CONTACT_EMAIL,

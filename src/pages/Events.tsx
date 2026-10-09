@@ -22,6 +22,7 @@ import {
   festDayNumber,
   seriesSessions,
   type FestDayKey,
+  type ScheduleEntry,
 } from "@/lib/fest-schedule";
 import { cn } from "@/lib/utils";
 import {
@@ -71,9 +72,14 @@ export default function Events() {
     if (!events) return m;
     for (const e of events) {
       if (!e.festKey) continue;
-      if (!FEST_SCHEDULE.some((s) => s.title === e.title && festDayKeyOf(entryWindow(s).startAt) === festDayKeyOf(e.startAt))) {
-        continue;
+      let found = false;
+      for (const s of Object.values(FEST_SCHEDULE)) {
+        if (s.title === e.title && festDayKeyOf(entryWindow(s).startAt) === festDayKeyOf(e.startAt)) {
+          found = true;
+          break;
+        }
       }
+      if (!found) continue;
       const n = seriesSessions(e.title).length;
       if (n > 1) m.set(e.slug, n);
     }
@@ -148,14 +154,13 @@ export default function Events() {
             label="All days"
             sub="8–10 Oct"
             count={Object.values(perDayCounts).reduce((s, n) => s + n, 0)}
-          />
-          {FEST_DAY_KEYS.map((key) => (
+          />              {FEST_DAY_KEYS.map((key) => (
             <DayChip
               key={key}
               active={day === key}
               onClick={() => setDay(key)}
               label={`Day ${festDayNumber(key)}`}
-              sub={fmtDayChip(dhakaTime(key, 0))}
+              sub={fmtDayChip(dhakaTime(0))}
               count={perDayCounts[key] ?? 0}
             />
           ))}
@@ -256,7 +261,7 @@ export default function Events() {
 
                   <ul className="divide-y divide-border">
                     {entries.map((e) => {
-                      const series = e.festKey ? seriesSessions(e.title).length : 0;
+                                          const series = e.festKey ? seriesSessions(e.title as ScheduleEntry["title"]).length : 0;
                       const kindBadge = KIND_BADGE[e.kind ?? ""];
                       const seatsLeft = e.capacity - e.confirmedCount;
                       return (
@@ -326,9 +331,7 @@ export default function Events() {
               );
             })}
           </div>
-        )}
-
-        <p className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
+        )}              <p className="mt-10 flex items-center gap-2 text-xs text-muted-foreground">
           <CalendarDays className="size-3.5" aria-hidden="true" />
           {FEST.name} · {FEST.scheduleTitle} · times shown in {FEST.timeZone}
         </p>

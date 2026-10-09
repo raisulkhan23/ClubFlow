@@ -1,7 +1,6 @@
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { CoverArt, EmptyState, StatusBadge } from "@/components/RequireRole";
-import { FEST } from "@/lib/fest-schedule";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -66,7 +65,7 @@ export default function EventDetails() {
   }
 
   const { event, publishedResults, announcements, club } = data;
-  const clubName = club?.name ?? FEST.clubName;
+  const clubName = (club?.name ?? FEST.clubName) ?? FEST.clubName ?? "";
   // Ceremonies and the lunch block carry no capacity, so never divide by it.
   const fillPct =
     event.capacity > 0
@@ -76,7 +75,7 @@ export default function EventDetails() {
   const isCompetition = (event.kind ?? "competition") === "competition";
   const isFestEntry = Boolean(event.festKey);
   const sessions = series?.sessions ?? [];
-  const dayNo = isFestEntry ? festDayNumber(dhakaDayOf(event.startAt)) : 0;
+  const dayNo = isFestEntry ? festDayNumber(dhakaDayOf(event.startAt) as Parameters<typeof festDayNumber>[0]) : 0;
 
   const cta = !isCompetition ? (
     <p className="text-sm text-muted-foreground">
@@ -145,9 +144,10 @@ export default function EventDetails() {
             )}
           </div>
           <h1 className="mt-3 max-w-2xl font-display text-2xl font-bold text-white sm:text-4xl">{event.title}</h1>
-          <p className="mt-1 text-sm text-white/70">              {isFestEntry
-                ? `${FEST.name} · Day ${dayNo} of 3`
-                : `Hosted by ${clubName}`}
+          <p className="mt-1 text-sm text-white/70">
+            {isFestEntry
+              ? `${FEST.name} · Day ${dayNo} of 3`
+              : `Hosted by ${clubName ?? FEST.clubName}`}
           </p>
         </div>
       </CoverArt>
@@ -373,7 +373,7 @@ export default function EventDetails() {
             <p className="mt-1.5 text-muted-foreground">{event.contactEmail}</p>
             {event.contactPhone && <p className="text-muted-foreground">{event.contactPhone}</p>}
             <p className="mt-2 text-xs text-muted-foreground">
-              Organized by {clubName}
+              Organized by {clubName ?? FEST.clubName ?? ""}
             </p>
           </div>
         </aside>
