@@ -16,6 +16,7 @@ import {
   seriesKeyOf,
   seriesSessions,
   scheduleSlug,
+  SCHEDULE_ENTRIES,
 } from "../lib/fest-schedule";
 
 // Wider ScheduleEntry used only by this seed module (category/kind/day/sessions).
@@ -57,7 +58,7 @@ interface ScheduleEntry {
  *  - `formFields`: one minimal default form so the registration workflow works.
  */
 
-const SYNC_VERSION = "drmc-tc-2026.v1.1";
+const SYNC_VERSION = "drmc-tc-2026.v1.2";
 const MARKER_KEY = "fest.schedule.drmc-tc-2026";
 const CLUB_SLUG = "drmc-tech-carnival";
 const CLUB_CONTACT_EMAIL = "techclub@drmc.edu.bd";
@@ -107,9 +108,9 @@ const DEMO_PARTICIPANTS: Array<[string, string]> = [
  * competitions. Deliberately modest, and only on real schedule entries.
  */
 const DEMO_REGISTRATION_PLAN: Array<{ title: string; count: number }> = [
-  { title: "Crack the Code", count: 5 },
-  { title: "Gaming Quiz", count: 4 },
-  { title: "Robo Quiz", count: 4 },
+  { title: "AI Web Development Contest", count: 5 },
+  { title: "Coding Sprint (Preli.)", count: 4 },
+  { title: "UI/UX Design Sprint", count: 4 },
   { title: "Arcane Draw", count: 3 },
   { title: "Chess Showdown", count: 3 },
 ];
@@ -326,7 +327,7 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
     endBeforeStart: 0,
   };
 
-  if (markerValue === SYNC_VERSION && existingFest.length === EXPECTED_ENTRY_COUNT) {
+  if (markerValue === SYNC_VERSION && existingFest.filter((e) => e.status !== "archived").length === EXPECTED_ENTRY_COUNT) {
     // Self-heal any duplicate marker rows left behind by older runs.
     for (const extra of markerRows.slice(1)) await ctx.db.delete(extra._id);
     const perDay = countByDay(existingFest.map((e) => e.slug));
@@ -342,7 +343,7 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
       validation: {
         ...validation,
         perDayMatches: comparePerDay(perDay, EXPECTED_ENTRIES_PER_DAY),
-        totalMatches: existingFest.length === EXPECTED_ENTRY_COUNT,
+        totalMatches: true,
       },
     };
   }
@@ -368,7 +369,7 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
   let updated = 0;
   const upserted: Array<{ _id: Id<"events">; entry: ScheduleEntry; title: string }> = [];
 
-  for (const entry of Object.values(FEST_SCHEDULE) as ScheduleEntry[]) {
+  for (const entry of SCHEDULE_ENTRIES) {
     const slug = slugFor(entry);
     const { startAt, endAt } = entryWindow(entry);
     const isCompetition = entry.kind === "competition";
@@ -432,10 +433,11 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
     .query("events")
     .withIndex("by_fest", (q) => q.eq("festKey", FEST.key))
     .collect();
-  const perDay = countByDay(persisted.map((e) => e.slug));
-  const slugs = persisted.map((e) => e.slug);
+  const active = persisted.filter((e) => e.status !== "archived");
+  const perDay = countByDay(active.map((e) => e.slug));
+  const slugs = active.map((e) => e.slug);
   const duplicateSlugs = slugs.length - new Set(slugs).size;
-  const endBeforeStart = persisted.filter((e) => e.endAt <= e.startAt).length;
+  const endBeforeStart = active.filter((e) => e.endAt <= e.startAt).length;
 
   // Upsert the marker (never insert a second row for the same key).
   if (markerRows.length > 0) {
@@ -457,7 +459,7 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
     validation: {
       ...validation,
       perDayMatches: comparePerDay(perDay, EXPECTED_ENTRIES_PER_DAY),
-      totalMatches: persisted.length === EXPECTED_ENTRY_COUNT,
+      totalMatches: active.length === EXPECTED_ENTRY_COUNT,
       duplicateSlugs,
       endBeforeStart,
     },
@@ -504,10 +506,11 @@ export const festScheduleStatus = query({
       .query("events")
       .withIndex("by_fest", (q) => q.eq("festKey", FEST.key))
       .collect();
+    const active = persisted.filter((e) => e.status !== "archived");
 
     const byDay: Record<string, Array<{ title: string; slug: string; startAt: number; kind: string }>> = {};
     for (const day of FEST_DAY_KEYS) byDay[day] = [];
-    for (const e of persisted) {
+    for (const e of active) {
       const day = FEST_DAY_KEYS.find((d) => e.slug.startsWith(`${FEST.key}-${d}-`));
       if (!day) continue;
       byDay[day].push({
@@ -525,11 +528,11 @@ export const festScheduleStatus = query({
     return {
       fest: FEST,
       scheduleTitle: FEST.scheduleTitle,
-      total: persisted.length,
+      total: active.length,
       expectedTotal: EXPECTED_ENTRY_COUNT,
       perDay,
       expectedPerDay: EXPECTED_ENTRIES_PER_DAY,
-      matches: persisted.length === EXPECTED_ENTRY_COUNT && comparePerDay(perDay, EXPECTED_ENTRIES_PER_DAY),
+      matches: active.length === EXPECTED_ENTRY_COUNT && comparePerDay(perDay, EXPECTED_ENTRIES_PER_DAY),
       byDay,
     };
   },
