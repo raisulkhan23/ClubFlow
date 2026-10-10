@@ -1,4 +1,5 @@
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
+import { useEffect } from "react";
 import { api } from "@/convex/_generated/api";
 import { Logo } from "@/components/Logo";
 import { CoverArt, StatusBadge } from "@/components/RequireRole";
@@ -81,6 +82,16 @@ export default function Landing() {
   const festStatus = useQuery(api.festSeed.festScheduleStatus);
   const festReady = festStatus ? festStatus.matches : false;
 
+  // Anonymous visitors must see real data too: kick the idempotent seeds once
+  // per session when the schedule has not been synced yet.
+  const runFestSeed = useMutation(api.festSeed.syncFestSchedule);
+  const runDemoSeed = useMutation(api.seed.ensureSeeded);
+  useEffect(() => {
+    if (festStatus === undefined || festStatus.matches) return;
+    void runFestSeed({});
+    void runDemoSeed({});
+  }, [festStatus, runFestSeed, runDemoSeed]);
+
   return (
     <div className="relative min-h-screen overflow-hidden bg-background">
       {/* Ambient grid */}
@@ -113,7 +124,7 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl px-4 pt-5 text-center">
           <p className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
             <span className="size-1.5 rounded-full bg-amber-500/60" aria-hidden="true" />
-The real schedule above is seeded on first login — refreshing updates it when ready.
+Refresh in a moment — the full schedule is syncing automatically.
           </p>
         </div>
       )}

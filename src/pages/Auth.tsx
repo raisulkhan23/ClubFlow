@@ -56,6 +56,11 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
   const festStatus = useQuery(api.festSeed.festScheduleStatus);
   const festReady = festStatus ? festStatus.matches : false;
 
+  // Demo login must guarantee data even on a fresh/empty deployment:
+  // the anonymous-signin mutation below is idempotent and version-stamped.
+  const runFestSeed = useMutation(api.festSeed.syncFestSchedule);
+  const runDemoSeed = useMutation(api.seed.ensureSeeded);
+
   const [step, setStep] = useState<"signIn" | { email: string }>("signIn");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -108,6 +113,7 @@ function Auth({ redirectAfterAuth }: AuthProps = {}) {
     setDemoBusy(role);
     setError(null);
     try {
+      await Promise.all([runFestSeed({}), runDemoSeed({})]);
       await signIn("anonymous");
       await claimDemoRole({ role });
       toast.success("Demo session started");
