@@ -181,10 +181,12 @@ function buildEntries(): ScheduleEntry[] {
 /** Every schedule slot of the fest, in order. This is what the seeder writes. */
 export const SCHEDULE_ENTRIES: ScheduleEntry[] = buildEntries();
 
-export const festDayKeyOf = (dayNo: number): FestDayKey | undefined => {
-  if (dayNo === 1) return "day1";
-  if (dayNo === 2) return "day2";
-  if (dayNo === 3) return "day3";
+/** Which fest day a real timestamp falls on, by its Asia/Dhaka calendar date. */
+export const festDayKeyOf = (timestamp: number): FestDayKey | undefined => {
+  const key = dhakaDayKey(timestamp);
+  for (const day of FEST_DAY_KEYS) {
+    if (FEST_DATES[day] === key) return day;
+  }
   return undefined;
 };
 
@@ -213,10 +215,27 @@ export function seriesDayCount(title: string): number {
 export const scheduleSlug = (dayKey: FestDayKey, title: string) =>
   `${FEST.key}-${dayKey}-${slugify(title)}`;
 
-export const entryWindow = (entry: ScheduleEntry) => ({
-  startAt: new Date(`2000-01-01T${entry.start}:00`),
-  endAt: new Date(`2000-01-01T${entry.end}:00`),
-});
+/** Real calendar dates of the fest's three days (Asia/Dhaka local dates). */
+export const FEST_DATES: Record<FestDayKey, string> = {
+  day1: "2026-10-08",
+  day2: "2026-10-09",
+  day3: "2026-10-10",
+};
+
+// Dhaka is UTC+6 with no DST, so local wall-clock `HH:MM` maps to UTC = local − 6h.
+const DHAKA_OFFSET_MS = 6 * 60 * 60_000;
+
+/** Absolute start/end instants for a schedule entry, on its real fest date. */
+export const entryWindow = (entry: ScheduleEntry) => {
+  const date = FEST_DATES[entry.day];
+  // Dhaka local wall-clock = UTC + 6h (no DST), so UTC instant = wall time − 6h.
+  const toInstant = (hhmm: string) =>
+    new Date(`${date}T${hhmm}:00+00:00`).getTime() - DHAKA_OFFSET_MS;
+  return {
+    startAt: new Date(toInstant(entry.start)),
+    endAt: new Date(toInstant(entry.end)),
+  };
+};
 
 /**
  * Expected counts are derived from the schedule table itself, so the seeding

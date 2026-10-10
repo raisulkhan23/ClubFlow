@@ -50,7 +50,7 @@ type ScheduleEntry = import("../lib/fest-schedule").ScheduleEntry;
  *  - `formFields`: one minimal default form so the registration workflow works.
  */
 
-const SYNC_VERSION = "drmc-tc-2026.v1.2";
+const SYNC_VERSION = "drmc-tc-2026.v1.3"; // v1.3: real fest dates (was 2000-01-01 placeholder)
 const MARKER_KEY = "fest.schedule.drmc-tc-2026";
 const CLUB_SLUG = "drmc-tech-carnival";
 const CLUB_CONTACT_EMAIL = "techclub@drmc.edu.bd";

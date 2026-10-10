@@ -13,6 +13,7 @@ import { fmtDayChip, fmtTimeRange } from "@/lib/format";
 import {
   FEST,
   FEST_DAY_KEYS,
+  FEST_DATES,
   FEST_SCHEDULE,
   entryWindow,
   dhakaDayKey,
@@ -159,13 +160,13 @@ export default function Events() {
             sub="8–10 Oct"
             count={Object.values(perDayCounts).reduce((s, n) => s + n, 0)}
           />
-          {FEST_DAY_KEYS.map((key) => (
+          {FEST_DAY_KEYS.map((key, i) => (
             <DayChip
               key={key}
               active={day === key}
               onClick={() => setDay(key)}
               label={`Day ${festDayNumber(key as FestDayKey)}`}
-              sub={fmtDayChip(Date.UTC(2026, 9, 8) + 10_800_000)}
+              sub={fmtDayChip(new Date(`${FEST_DATES[key]}T09:00:00+06:00`).getTime())}
               count={perDayCounts[key] ?? 0}
             />
           ))}
