@@ -75,7 +75,9 @@ const COMPARE = [
 
 export default function Landing() {
   const stats = useQuery(api.events.publicStats);
-  const events = useQuery(api.events.listPublic, { sort: "upcoming", limit: 3 });
+  // Upcoming strip shows only events you can actually register for —
+  // never closed/full/break/ceremony blocks.
+  const events = useQuery(api.events.listPublic, { sort: "upcoming", limit: 3, registrationOpen: true });
   const { isAuthenticated, user } = useAuth();
   const dashboardHref = isAuthenticated ? roleHome(user?.role as AppRole) : "/auth?returnTo=%2Forganizer";
 

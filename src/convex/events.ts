@@ -72,8 +72,10 @@ export const listPublic = query({
     limit: v.optional(v.number()),
     /** Restrict to one fest day, "2026-10-08" — compared in Asia/Dhaka. */
     day: v.optional(v.string()),
+    /** Only events that are currently open for registration (open/almost_full/live). */
+    registrationOpen: v.optional(v.boolean()),
   },
-  handler: async (ctx, { search, category, sort = "upcoming", limit = 200, day }) => {
+  handler: async (ctx, { search, category, sort = "upcoming", limit = 200, day, registrationOpen }) => {
     const all: Doc<"events">[] = [];
     for (const status of PUBLIC_STATUSES) {
       const byStatus = await ctx.db
@@ -104,6 +106,10 @@ export const listPublic = query({
         (e) => (e.festKey ? festDayFromSlug(e.slug) : undefined) === day ||
                (e.festKey ? festDayKeyOf(e.startAt) === day : false),
       );
+    }
+    if (registrationOpen === true) {
+      // Only currently-registrable events: open, almost full, or live.
+      events = events.filter((e) => e.state === "open" || e.state === "almost_full" || e.state === "live");
     }
     if (sort === "upcoming") {
       events.sort((a, b) => a.startAt - b.startAt);
