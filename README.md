@@ -105,7 +105,7 @@ production records and is safe to re-run.
 
 ## 5. Deployment URL
 
-**https://dirty-states-create.freebuff.dev/**
+**https://clubflow.freebuff.app/**
 
 > **Status — read this before judging.** The production build currently fails at
 > runtime with `No address provided to ConvexReactClient`. The deploy pipeline
