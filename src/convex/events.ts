@@ -18,6 +18,7 @@ import {
   FEST,
   FEST_DAY_KEYS,
   FEST_SCHEDULE,
+  festDayFromSlug,
   festDayKeyOf,
   festDayLabel,
   festDayNumber,
@@ -97,7 +98,12 @@ export const listPublic = query({
     }
     if (day && day !== "all") {
       // Compare against the Dhaka calendar day, never the server's local day.
-      events = events.filter((e) => festDayKeyOf(e.startAt) === day);
+      // Prefer the slug-encoded fest day so rows still carrying placeholder
+      // dates (pre-datefix rows) don't vanish from day-filtered views.
+      events = events.filter(
+        (e) => (e.festKey ? festDayFromSlug(e.slug) : undefined) === day ||
+               (e.festKey ? festDayKeyOf(e.startAt) === day : false),
+      );
     }
     if (sort === "upcoming") {
       events.sort((a, b) => a.startAt - b.startAt);
@@ -141,7 +147,11 @@ export const festAgenda = query({
         dayKey,
         dayNo: festDayNumber(dayKey),
         label: festDayLabel(dayKey),
-        entries: sorted.filter((e) => festDayKeyOf(e.startAt) === dayKey),
+        entries: sorted.filter(
+          (e) =>
+            (e.festKey ? festDayFromSlug(e.slug) : undefined) === dayKey ||
+            (e.festKey ? festDayKeyOf(e.startAt) === dayKey : false),
+        ),
       }),
     );
 

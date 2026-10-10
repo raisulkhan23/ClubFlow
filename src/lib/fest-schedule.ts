@@ -190,6 +190,20 @@ export const festDayKeyOf = (timestamp: number): FestDayKey | undefined => {
   return undefined;
 };
 
+/**
+ * Which fest day a persisted event belongs to, decoded from its stable slug
+ * (`drmc-tech-carnival-day3-...`). Slugs encode the day at seed time, so this
+ * stays correct even while old rows still carry placeholder (2000-01-01)
+ * timestamps — those map to no fest date via festDayKeyOf and would otherwise
+ * be dropped by day filters.
+ */
+export const festDayFromSlug = (slug: string): FestDayKey | undefined => {
+  for (const day of FEST_DAY_KEYS) {
+    if (slug.includes(`-${day}-`)) return day;
+  }
+  return undefined;
+};
+
 export const festDayLabel = (dayKey: FestDayKey | string) => {
   return FEST_SCHEDULE[dayKey as FestDayKey]?.title ?? dayKey;
 };
