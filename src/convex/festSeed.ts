@@ -8,7 +8,6 @@ import {
   EXPECTED_ENTRY_COUNT,
   FEST,
   FEST_DAY_KEYS,
-  FEST_SCHEDULE,
   type FestDayKey,
   entryWindow,
   festDayLabel,
@@ -19,16 +18,9 @@ import {
   SCHEDULE_ENTRIES,
 } from "../lib/fest-schedule";
 
-// Wider ScheduleEntry used only by this seed module (category/kind/day/sessions).
-interface ScheduleEntry {
-  day: FestDayKey;
-  title: string;
-  start: string;
-  end: string;
-  kind?: string;
-  category?: string;
-  sessions?: Array<{ start: string; end: string; title: string; description?: string; day?: FestDayKey }>;
-}
+// The schedule shape lives in `lib/fest-schedule` — the seeder consumes it
+// directly so seeding and the schedule table can never drift apart.
+type ScheduleEntry = import("../lib/fest-schedule").ScheduleEntry;
 
 /**
  * ─────────────────────────────────────────────────────────────────────────────
@@ -269,7 +261,6 @@ async function seedDemoRegistrations(
       (e) => e.entry.title === plan.title && e.entry.day === firstDay && e.entry.kind === "competition",
     );
     if (!target) continue;
-    if (!target) continue;
 
     const existing = await ctx.db
       .query("registrations")
@@ -428,6 +419,19 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
   // ── 3. Minimal, clearly-scoped demo registrations ─────────────────────────
   const demoRegistrationsCreated = await seedDemoRegistrations(ctx, clubId, upserted);
 
+  // ── 3b. Retire any fest rows that no longer exist in the schedule ──────────
+  const expectedSlugs = new Set(SCHEDULE_ENTRIES.map((e) => scheduleSlug(e.day, e.title)));
+  const afterUpsert = await ctx.db
+    .query("events")
+    .withIndex("by_fest", (q) => q.eq("festKey", FEST.key))
+    .collect();
+  let retiredStale = 0;
+  for (const ev of afterUpsert) {
+    if (expectedSlugs.has(ev.slug) || ev.status === "archived") continue;
+    await ctx.db.patch(ev._id, { status: "archived", updatedAt: now });
+    retiredStale++;
+  }
+
   // ── 4. Self-validation against the authoritative schedule ─────────────────
   const persisted = await ctx.db
     .query("events")
@@ -443,8 +447,6 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
   if (markerRows.length > 0) {
     await ctx.db.patch(markerRows[0]._id, { value: SYNC_VERSION });
     for (const extra of markerRows.slice(1)) await ctx.db.delete(extra._id);
-  } else {
-    await ctx.db.insert("meta", { key: MARKER_KEY, value: SYNC_VERSION });
   }
 
   return {
@@ -452,7 +454,7 @@ export async function runFestSync(ctx: MutationCtx): Promise<FestSyncSummary> {
     version: SYNC_VERSION,
     created,
     updated,
-    retiredDemoEvents: retired,
+    retiredDemoEvents: retired + retiredStale,
     demoRegistrationsCreated,
     total: persisted.length,
     perDay,
@@ -498,7 +500,9 @@ export const syncFestSchedule = mutation({
   handler: async (ctx) => runFestSync(ctx),
 });
 
-/** Read-only status, used by the validation checks and the UI banner. */
+/**
+ * Read-only status, used by the validation checks and the UI banner.
+ */
 export const festScheduleStatus = query({
   args: {},
   handler: async (ctx: QueryCtx) => {
@@ -508,12 +512,15 @@ export const festScheduleStatus = query({
       .collect();
     const active = persisted.filter((e) => e.status !== "archived");
 
-    const byDay: Record<string, Array<{ title: string; slug: string; startAt: number; kind: string }>> = {};
+    const byDay: Record<
+      string,
+      Array<{ title: string; slug: string; startAt: number; kind: string }>
+    > = {};
     for (const day of FEST_DAY_KEYS) byDay[day] = [];
     for (const e of active) {
-      const day = FEST_DAY_KEYS.find((d) => e.slug.startsWith(`${FEST.key}-${d}-`));
-      if (!day) continue;
-      byDay[day].push({
+      const match = FEST_DAY_KEYS.find((d) => e.slug.startsWith(`${FEST.key}-${d}-`));
+      if (!match) continue;
+      byDay[match].push({
         title: e.title,
         slug: e.slug,
         startAt: e.startAt,

@@ -113,7 +113,7 @@ export default function Landing() {
         <div className="mx-auto max-w-6xl px-4 pt-5 text-center">
           <p className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-700 dark:text-amber-300">
             <span className="size-1.5 rounded-full bg-amber-500/60" aria-hidden="true" />
-            Real schedule data is still being seeded — refreshing updates the fest below.
+The real schedule above is seeded on first login — refreshing updates it when ready.
           </p>
         </div>
       )}

@@ -172,10 +172,12 @@ export default function Events() {
         </div>
 
         {!festReady && (
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-            <div className="flex w-full items-center gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-              <Loader2 className="size-3.5 animate-spin text-amber-500" aria-hidden="true" />
-              <span>The full DRMC Tech Carnival 2026 schedule is still being seeded under the hood. Filter lists will update automatically when it is ready.</span>
+          <div className="mt-4 flex max-w-2xl items-center gap-2 overflow-hidden rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
+            <Loader2 className="size-3.5 animate-spin shrink-0 text-amber-500" aria-hidden="true" />
+            <div className="min-w-0 overflow-hidden">
+              <span className="block truncate">
+                The full DRMC Tech Carnival 2026 schedule is still being seeded under the hood. Filter lists will update automatically when it is ready.
+              </span>
             </div>
           </div>
         )}
