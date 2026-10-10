@@ -146,7 +146,7 @@ from the Admin console.
 
 ## 8. AI Tools and Features Used
 
-* **Codebuff** — the primary development agent. Worked end to end in this
+* **Freebuff** — the primary development agent. Worked end to end in this
   repository: audited the existing codebase, implemented the fest hierarchy,
   registration system, organizer/volunteer workspaces and the seed pipeline, and
   produced the deployment fixes and the README rewrite.
@@ -190,7 +190,7 @@ from the Admin console.
 
 ## 11. License
 
-MIT — see [LICENSE](./license). Copyright © 2026 DRMC IT Club. Dependencies are
+MIT — see [LICENSE](https://github.com/raisulkhan23/ClubFlow/blob/main/LICENSE). Copyright © 2026 DRMC IT Club. Dependencies are
 distributed under their own licenses (MIT/Apache-2.0); no copyleft libraries are
 bundled.
 
